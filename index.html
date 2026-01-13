@@ -123,7 +123,13 @@
     <div id="music-controls">
       <label>BGM（music/bgm.mp3）</label>
       <!-- controls は残す：音量調整や手動再生もできて安心 -->
-      <audio id="bgm" controls preload="auto"></audio>
+      <audio id="bgm" controls preload="auto">
+        <script>
+          const bgm = document.getElementById('bgm');
+          bgm.src = "music/bgm.mp3";
+          bgm.loop = true;
+        </script>
+      </audio>
       <div style="font-size:12px; opacity:.85; margin-top:6px;">
         ※ブラウザ仕様で、ユーザー操作（開始ボタン等）なしの自動再生は制限されることがあります
       </div>
@@ -161,3 +167,4 @@
       const exhaleSec = parseInt(exhaleSlider.value, 10);
 
       inhaleVal.textConte
+
