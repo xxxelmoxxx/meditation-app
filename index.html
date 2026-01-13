@@ -157,17 +157,30 @@
   }
 
   #circle{
-    width: 170px;
-    height: 170px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 42px rgba(56,189,248,.45);
-    transform: scale(1);
-    opacity: .92;
+  position: relative; /* ★追加 */
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 42px rgba(56,189,248,.45);
+  transform: scale(1);
+  opacity: .92;
+  transition-property: transform, opacity;
+  transition-timing-function: linear;
+}
 
-    transition-property: transform, opacity;
-    transition-timing-function: linear;
-  }
+#countdown{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  font-weight: 800;
+  color: #ffffff;
+  opacity: 0.9;
+  pointer-events: none; /* 操作邪魔しない */
+  user-select: none;
+}
 
   #instruction{
     text-align:center;
@@ -266,7 +279,9 @@
     <!-- ビジュアル -->
     <div class="visual">
       <div class="circleWrap">
-        <div id="circle"></div>
+        <div id="circle">
+          <div id="countdown"> </div>
+        </div>
       </div>
       <div id="instruction">準備ができたら開始を押してください</div>
         <div id="lockNote" class="note" style="display:none;">
@@ -287,6 +302,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const inhaleVal = document.getElementById("inhaleVal");
   const exhaleVal = document.getElementById("exhaleVal");
   const circle = document.getElementById("circle");
+  const countdown = document.getElementById("countdown");
   const instruction = document.getElementById("instruction");
   const lockNote = document.getElementById("lockNote");
   const bgm = document.getElementById("bgm");
@@ -499,6 +515,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // 吸う
   cueInhale();
   setPhase("吸って", inhaleMs, SCALE_INHALE_MAX, 1.0, false);
+  startCountdown(inhale.value); // ★追加
   startMetronome();
 
   timer = setTimeout(() => {
@@ -506,11 +523,13 @@ document.addEventListener("DOMContentLoaded", () => {
     cueHold();
     stopMetronome();
     setPhase("止める", HOLD_MS, currentScale, 0.92, true);
+    startCountdown(2); // ★追加
 
     timer = setTimeout(() => {
       // 吐く（メトロノーム再開）
       cueExhale();
       setPhase("吐いて", exhaleMs, SCALE_EXHALE_MIN, 1.0, false);
+      startCountdown(exhale.value); // ★追加
       startMetronome();
 
       timer = setTimeout(() => {
@@ -554,6 +573,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (timer) clearTimeout(timer);
     timer = null;
     stopMetronome();
+    clearCountdown();
 
     instruction.textContent = "停止しました";
     circle.style.transitionDuration = "200ms";
@@ -566,12 +586,37 @@ document.addEventListener("DOMContentLoaded", () => {
     lockNote.style.display = "none"; // ★非表示
   }
 
+let countdownTimer = null;
+
+function startCountdown(seconds){
+  clearInterval(countdownTimer);
+  let remain = seconds;
+  countdown.textContent = remain;
+
+  countdownTimer = setInterval(() => {
+    remain--;
+    if (remain <= 0) {
+      clearInterval(countdownTimer);
+      countdown.textContent = "";
+    } else {
+      countdown.textContent = remain;
+    }
+  }, 1000);
+}
+
+function clearCountdown(){
+  clearInterval(countdownTimer);
+  countdown.textContent = "";
+}
+
+
   document.getElementById("start").addEventListener("click", start);
   document.getElementById("stop").addEventListener("click", stop);
 });
 </script>
 </body>
 </html>
+
 
 
 
