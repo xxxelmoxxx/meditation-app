@@ -61,6 +61,14 @@ button{
 #stop{background:#6b7280;color:#fff}
 
 audio{width:100%;margin-top:12px}
+
+.note{
+  font-size:12px;
+  opacity:.85;
+  line-height:1.4;
+  text-align:center;
+}
+  
 </style>
 </head>
 
@@ -82,6 +90,14 @@ audio{width:100%;margin-top:12px}
 </div>
 
 <audio id="bgm" src="music/bgm.mp3" preload="auto" controls></audio>
+  <div class="note">
+    合図音ガイド：低い音＝吸う/吐く、高い音＝息を止める（2秒）
+  </div>
+
+<div class="note" style="margin-top:10px;">
+  BGM：優しい灯火 (Tenderly glow) / 蒲鉾さちこ（DOVA-SYNDROME）
+</div>
+
 
 <div id="circle"></div>
 <div id="instruction">準備ができたら開始</div>
@@ -116,15 +132,39 @@ exhale.oninput=updateValues;
 updateValues();
 
 /* 合図音 */
-const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-function beep(freq=440,duration=0.15){
-  const o=audioCtx.createOscillator();
-  const g=audioCtx.createGain();
-  o.frequency.value=freq;
-  o.connect(g); g.connect(audioCtx.destination);
-  o.start();
-  g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+duration);
-  o.stop(audioCtx.currentTime+duration);
+function beepBell(freq = 440, duration = 0.18) {
+  // iOS/Chrome対策：ユーザー操作後にresumeされる想定
+  if (audioCtx.state === "suspended") audioCtx.resume().catch(()=>{});
+
+  const now = audioCtx.currentTime;
+
+  // オシレーター2つで少し「倍音」を作る
+  const o1 = audioCtx.createOscillator();
+  const o2 = audioCtx.createOscillator();
+  o1.type = "sine";
+  o2.type = "triangle";
+  o1.frequency.value = freq;
+  o2.frequency.value = freq * 2;
+
+  // 音量エンベロープ（チーンの減衰）
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0.0001, now);
+  g.gain.exponentialRampToValueAtTime(0.35, now + 0.01);           // 立ち上がり
+  g.gain.exponentialRampToValueAtTime(0.0001, now + duration);     // 減衰
+
+  // 少し丸めるフィルタ（耳に痛くしない）
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = 2200;
+
+  o1.connect(g); o2.connect(g);
+  g.connect(filter);
+  filter.connect(audioCtx.destination);
+
+  o1.start(now);
+  o2.start(now);
+  o1.stop(now + duration);
+  o2.stop(now + duration);
 }
 
 /* 呼吸1サイクル */
@@ -135,7 +175,7 @@ function cycle(){
   const exhaleMs=exhale.value*1000;
 
   instruction.textContent="吸って";
-  beep(220); // 吸う
+  beepBell(330); // 吸う
   circle.style.transitionDuration=inhaleMs+"ms";
   circle.style.transform="scale(1.4)";
 
@@ -144,7 +184,7 @@ function cycle(){
     beep(880); // 止め
     timer=setTimeout(()=>{
       instruction.textContent="吐いて";
-      beep(160); // 吐く
+      beepBell(220); // 吐く
       circle.style.transitionDuration=exhaleMs+"ms";
       circle.style.transform="scale(0.7)";
 
@@ -178,3 +218,4 @@ document.getElementById("stop").onclick=()=>{
 </script>
 </body>
 </html>
+
