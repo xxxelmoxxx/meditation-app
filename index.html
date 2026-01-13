@@ -11,7 +11,7 @@
     --bg2:#764ba2;
     --card: rgba(255,255,255,.15);
     --text: #ffffff;
-    --muted: rgba(255,255,255,.85);
+    --muted: rgba(255,255,255,.88);
 
     --accent:#38bdf8;      /* 円 */
     --start1:#22c55e;      /* 開始ボタン */
@@ -31,14 +31,14 @@
     align-items:center;
     min-height:100vh;
     margin:0;
-    padding: 20px;
+    padding: 16px;
     box-sizing:border-box;
   }
 
   .container{
-    width: 380px;
+    width: 390px;
     background: var(--card);
-    padding: 24px;
+    padding: 18px 18px 20px;
     border-radius: 20px;
     box-shadow: 0 10px 30px var(--shadow);
     backdrop-filter: blur(10px);
@@ -46,8 +46,8 @@
 
   h1{
     text-align:center;
-    margin: 0 0 18px 0;
-    font-size: 22px;
+    margin: 0 0 10px 0;
+    font-size: 20px;
   }
 
   .row{
@@ -55,21 +55,18 @@
     gap: 10px;
     align-items:center;
     justify-content:space-between;
-    margin-bottom: 10px;
+    margin: 6px 0;
   }
 
-  .row label{
+  label{
     font-size: 13px;
     color: var(--muted);
-  }
-
-  select, input[type="checkbox"]{
-    cursor: pointer;
+    white-space: nowrap;
   }
 
   select{
-    width: 55%;
-    padding: 8px 10px;
+    width: 56%;
+    padding: 7px 10px;
     border-radius: 10px;
     border: 1px solid rgba(255,255,255,.25);
     background: rgba(0,0,0,.15);
@@ -77,17 +74,36 @@
     outline: none;
   }
 
-  .settings{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-top: 10px;
+  .divider{
+    height: 1px;
+    background: rgba(255,255,255,.18);
+    margin: 10px 0;
   }
 
-  label{
-    font-size: 14px;
-    margin-bottom: 4px;
-    display:block;
+  /* 吸う/吐くを「行数詰め」 */
+  .ranges{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .rangeBox{
+    display:flex;
+    flex-direction:column;
+    gap: 4px;
+  }
+  .lineLabel{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.1;
+  }
+  .lineLabel .val{
+    color: var(--accent);
+    font-weight: 800;
   }
 
   input[type=range]{
@@ -104,35 +120,40 @@
     height: 18px;
     border-radius: 50%;
     background: var(--accent);
-  }
-
-  .value{
-    color: var(--accent);
-    font-weight: 700;
-    margin-top: 6px;
+    cursor: pointer;
   }
 
   audio{
     width:100%;
-    margin-top: 12px;
+    margin-top: 10px;
     border-radius: 10px;
   }
 
   .note{
     font-size: 12px;
     color: var(--muted);
-    line-height: 1.4;
+    line-height: 1.35;
     text-align:center;
-    margin-top: 8px;
+    margin-top: 6px;
   }
 
-  /* 円と指示文のレイアウト：重ならないように余白を確保 */
+  /* ===== 重要：円エリアとテキストエリアを分離（被り防止） ===== */
   .visual{
-    margin-top: 16px;
+    margin-top: 10px;
     display:flex;
     flex-direction:column;
     align-items:center;
-    gap: 14px; /* ここが効く：円が大きくなっても文字に被りにくい */
+    gap: 10px;
+  }
+
+  /* 円の表示領域を固定して、拡大しても文字へ侵入しにくくする */
+  .circleWrap{
+    width: 100%;
+    height: 240px;      /* ←ここが効く：円が大きくなっても下に落ちにくい */
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow: hidden;   /* 念のため */
   }
 
   #circle{
@@ -140,7 +161,7 @@
     height: 170px;
     border-radius: 50%;
     background: var(--accent);
-    box-shadow: 0 0 40px rgba(56,189,248,.45);
+    box-shadow: 0 0 42px rgba(56,189,248,.45);
     transform: scale(1);
     opacity: .92;
 
@@ -152,11 +173,11 @@
     text-align:center;
     font-size: 20px;
     min-height: 30px;
-    font-weight: 600;
+    font-weight: 700;
   }
 
   .controls{
-    margin-top: 16px;
+    margin-top: 14px;
     display:flex;
     justify-content:space-between;
     gap: 12px;
@@ -180,12 +201,6 @@
   #stop{
     background: linear-gradient(45deg, var(--stop1), var(--stop2));
   }
-
-  .divider{
-    height: 1px;
-    background: rgba(255,255,255,.18);
-    margin: 14px 0;
-  }
 </style>
 </head>
 
@@ -193,7 +208,7 @@
   <div class="container">
     <h1>呼吸瞑想アプリ</h1>
 
-    <!-- テーマ選択 -->
+    <!-- テーマ -->
     <div class="row">
       <label for="themeSelect">テーマ</label>
       <select id="themeSelect">
@@ -217,19 +232,24 @@
 
     <div class="divider"></div>
 
-    <!-- 呼吸秒数 -->
-    <div class="settings">
-      <div>
-        <label for="inhale">吸う（秒）</label>
-        <!-- 中央=6 -->
+    <!-- 吸う/吐く（行数詰め） -->
+    <div class="ranges">
+      <div class="rangeBox">
+        <div class="lineLabel">
+          <span>吸う（秒）</span>
+          <span class="val" id="inhaleVal">6秒</span>
+        </div>
+        <!-- 2〜10 中央=6 -->
         <input id="inhale" type="range" min="2" max="10" value="6" />
-        <div class="value" id="inhaleVal">6秒</div>
       </div>
-      <div>
-        <label for="exhale">吐く（秒）</label>
-        <!-- 中央=8 -->
+
+      <div class="rangeBox">
+        <div class="lineLabel">
+          <span>吐く（秒）</span>
+          <span class="val" id="exhaleVal">8秒</span>
+        </div>
+        <!-- 4〜12 中央=8 -->
         <input id="exhale" type="range" min="4" max="12" value="8" />
-        <div class="value" id="exhaleVal">8秒</div>
       </div>
     </div>
 
@@ -245,7 +265,9 @@
 
     <!-- ビジュアル -->
     <div class="visual">
-      <div id="circle"></div>
+      <div class="circleWrap">
+        <div id="circle"></div>
+      </div>
       <div id="instruction">準備ができたら開始を押してください</div>
     </div>
 
@@ -273,7 +295,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let timer = null;
   let metroTimer = null;
 
-  // ---- 秒数表示
+  // ===== 秒数表示
   function updateValues(){
     inhaleVal.textContent = inhale.value + "秒";
     exhaleVal.textContent = exhale.value + "秒";
@@ -282,7 +304,7 @@ document.addEventListener("DOMContentLoaded", () => {
   exhale.addEventListener("input", updateValues);
   updateValues();
 
-  // ---- テーマ適用（CSS変数差し替え）
+  // ===== テーマ
   const themes = {
     aurora: {
       bg1:"#667eea", bg2:"#764ba2", card:"rgba(255,255,255,.15)",
@@ -323,7 +345,7 @@ document.addEventListener("DOMContentLoaded", () => {
   themeSelect.addEventListener("change", () => applyTheme(themeSelect.value));
   applyTheme(themeSelect.value);
 
-  // ---- 音（合図音＋メトロノーム）
+  // ===== 音
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
   function ensureAudio(){
@@ -332,7 +354,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ウッドブロック風（短くて埋もれにくい）
+  // 合図音（木：コツ）…意味のある音
   function wood(freq = 300, duration = 0.11, gainPeak = 0.35){
     ensureAudio();
     const now = audioCtx.currentTime;
@@ -359,19 +381,53 @@ document.addEventListener("DOMContentLoaded", () => {
     osc.stop(now + duration);
   }
 
-  // メトロノーム：1秒ごとに「軽いクリック」、フェーズ開始時は少し強め
+  // メトロノーム（ノイズクリック：チッ）…背景の時間
   function metroClick(accent = false){
     const vol = Math.max(0, Math.min(1, parseInt(metroVol.value, 10) / 100));
     if (vol === 0) return;
-    // 周波数は固定で、アクセントは音量を上げる
-    wood(520, 0.05, accent ? (0.10 + vol * 0.45) : (0.07 + vol * 0.28));
+
+    ensureAudio();
+    const now = audioCtx.currentTime;
+
+    // 30msのホワイトノイズ
+    const bufferSize = Math.floor(audioCtx.sampleRate * 0.03);
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+
+    const gain = audioCtx.createGain();
+    const filter = audioCtx.createBiquadFilter();
+
+    // 高域だけ通して「チッ」感を出す
+    filter.type = "highpass";
+    filter.frequency.value = 2500;
+
+    const peak = accent
+      ? (0.05 + vol * 0.18)
+      : (0.03 + vol * 0.12);
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(peak, now + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.03);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    noise.start(now);
+    noise.stop(now + 0.04);
   }
 
   function startMetronome(){
     stopMetronome();
     if (!metroOn.checked) return;
 
-    // すぐ1回鳴らして、以降1秒ごと
+    // フェーズ開始はアクセント
     metroClick(true);
     metroTimer = setInterval(() => metroClick(false), 1000);
   }
@@ -383,26 +439,36 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ---- 呼吸フェーズ
-  // 要件：吸う / 止める(2秒) / 吐く / 止める(2秒)
+  // ===== 呼吸フェーズ
   const HOLD_MS = 2000;
 
-  // 円が文字に被らないよう最大値を抑制（ここを調整ポイントとして明示）
-  const SCALE_INHALE_MAX = 1.25; // ←最大化を抑える（1.35などに上げると被りやすい）
-  const SCALE_EXHALE_MIN = 0.78;
+  // 円が被らないための最大/最小（必要なら少し下げる）
+  const SCALE_INHALE_MAX = 1.18; // ここを下げるほど被りにくい（例：1.15）
+  const SCALE_EXHALE_MIN = 0.80;
 
-  function setPhase(text, durationMs, scale, opacity){
+  // 「止める」はサイズを変えないため、直前スケールを保持
+  let currentScale = 1.0;
+
+  function setPhase(text, durationMs, scale, opacity, lockScale=false){
     instruction.textContent = text;
+
+    if (lockScale) {
+      // 止める：サイズ変えない & 変化を止める
+      circle.style.transitionDuration = "0ms";
+      circle.style.transform = `scale(${currentScale})`;
+      circle.style.opacity = String(opacity);
+      return;
+    }
+
+    currentScale = scale;
     circle.style.transitionDuration = durationMs + "ms";
     circle.style.transform = `scale(${scale})`;
     circle.style.opacity = String(opacity);
   }
 
-  function cueInhale(){ wood(300); }              // 低い音：吸う
-  function cueExhale(){ wood(220); }              // 低い音：吐く（さらに低い）
-  function cueHold(){
-    wood(900); setTimeout(() => wood(900), 150);  // 高い音2回：止める
-  }
+  function cueInhale(){ wood(300); }                 // 低：吸う
+  function cueExhale(){ wood(220); }                 // 低：吐く（さらに低）
+  function cueHold(){ wood(900); setTimeout(() => wood(900), 150); } // 高2回：止める
 
   function cycle(){
     if (!running) return;
@@ -412,25 +478,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 吸う
     cueInhale();
-    setPhase("吸って", inhaleMs, SCALE_INHALE_MAX, 1.0);
-    startMetronome(); // 秒カウント開始（フェーズ開始のアクセント含む）
+    setPhase("吸って", inhaleMs, SCALE_INHALE_MAX, 1.0, false);
+    startMetronome();
 
     timer = setTimeout(() => {
-      // 止める
+      // 止める（サイズ固定）
       cueHold();
-      setPhase("止める", HOLD_MS, SCALE_INHALE_MAX, 0.86);
+      setPhase("止める", HOLD_MS, currentScale, 0.92, true);
       startMetronome();
 
       timer = setTimeout(() => {
         // 吐く
         cueExhale();
-        setPhase("吐いて", exhaleMs, SCALE_EXHALE_MIN, 1.0);
+        setPhase("吐いて", exhaleMs, SCALE_EXHALE_MIN, 1.0, false);
         startMetronome();
 
         timer = setTimeout(() => {
-          // 止める
+          // 止める（サイズ固定）
           cueHold();
-          setPhase("止める", HOLD_MS, 0.92, 0.70);
+          setPhase("止める", HOLD_MS, currentScale, 0.92, true);
           startMetronome();
 
           timer = setTimeout(() => {
@@ -447,11 +513,13 @@ document.addEventListener("DOMContentLoaded", () => {
   function start(){
     if (running) return;
     running = true;
+
     ensureAudio();
+    bgm.play().catch(()=>{ /* controlsで手動再生可 */ });
 
-    bgm.play().catch(()=>{ /* 手動再生でもOK */ });
-
-    // 初期状態を整える
+    // 初期状態
+    currentScale = 1.0;
+    circle.style.transitionDuration = "200ms";
     circle.style.transform = "scale(1)";
     circle.style.opacity = "0.92";
 
@@ -465,7 +533,8 @@ document.addEventListener("DOMContentLoaded", () => {
     stopMetronome();
 
     instruction.textContent = "停止しました";
-    circle.style.transitionDuration = "250ms";
+    circle.style.transitionDuration = "200ms";
+    currentScale = 1.0;
     circle.style.transform = "scale(1)";
     circle.style.opacity = "0.92";
     bgm.pause();
