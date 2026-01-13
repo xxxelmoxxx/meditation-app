@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>呼吸瞑想ミニアプリ（BGM対応）</title>
   <style>
     body {
@@ -40,7 +41,11 @@
       gap: 12px;
       margin-bottom: 24px;
     }
-    label { display: block; font-size: 14px; margin-bottom: 4px; }
+    label {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
     input[type="range"] {
       width: 100%;
       height: 6px;
@@ -57,14 +62,17 @@
       background: #38bdf8;
       cursor: pointer;
     }
-    .value { font-size: 16px; font-weight: bold; color: #38bdf8; }
+    .value {
+      font-size: 16px;
+      font-weight: bold;
+      color: #38bdf8;
+    }
 
     #circle {
       width: 180px;
       height: 180px;
       border-radius: 50%;
       background: radial-gradient(circle, #38bdf8, #0ea5e9);
-      /* ここはJSでフェーズごとに transitionDuration を上書きします */
       transition-property: transform, opacity;
       transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
@@ -84,8 +92,21 @@
       min-height: 60px;
     }
 
-    #music-controls { margin-bottom: 20px; text-align: center; }
-    #controls { display: flex; gap: 12px; justify-content: center; }
+    #music-controls {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    audio {
+      width: 100%;
+      margin-top: 8px;
+      border-radius: 8px;
+    }
+
+    #controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
     button {
       padding: 12px 24px;
       border-radius: 25px;
@@ -96,11 +117,23 @@
       transition: all 0.2s;
       min-width: 80px;
     }
-    #startBtn { background: linear-gradient(45deg, #22c55e, #16a34a); color: white; }
+    #startBtn {
+      background: linear-gradient(45deg, #22c55e, #16a34a);
+      color: white;
+    }
     #startBtn:hover { transform: scale(1.05); }
-    #stopBtn { background: linear-gradient(45deg, #6b7280, #4b5563); color: white; }
+    #stopBtn {
+      background: linear-gradient(45deg, #6b7280, #4b5563);
+      color: white;
+    }
     #stopBtn:hover { transform: scale(1.05); }
-    audio { width: 100%; margin-top: 8px; border-radius: 8px; }
+
+    .note {
+      font-size: 12px;
+      opacity: .85;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
   </style>
 </head>
 <body>
@@ -110,29 +143,21 @@
     <div class="settings">
       <div>
         <label>吸う（秒）</label>
-        <input type="range" id="inhale" min="2" max="10" value="4">
+        <input type="range" id="inhale" min="2" max="10" value="4" />
         <div class="value" id="inhaleVal">4秒</div>
       </div>
       <div>
         <label>吐く（秒）</label>
-        <input type="range" id="exhale" min="4" max="12" value="6">
+        <input type="range" id="exhale" min="4" max="12" value="6" />
         <div class="value" id="exhaleVal">6秒</div>
       </div>
     </div>
 
     <div id="music-controls">
       <label>BGM（music/bgm.mp3）</label>
-      <!-- controls は残す：音量調整や手動再生もできて安心 -->
-      <audio id="bgm" controls preload="auto">
-        <script>
-          const bgm = document.getElementById('bgm');
-          bgm.src = "music/bgm.mp3";
-          bgm.loop = true;
-        </script>
-      </audio>
-      <div style="font-size:12px; opacity:.85; margin-top:6px;">
-        ※ブラウザ仕様で、ユーザー操作（開始ボタン等）なしの自動再生は制限されることがあります
-      </div>
+      <!-- ★ srcを直書き：JSが止まってもBGMが読み込める -->
+      <audio id="bgm" controls preload="auto" src="music/bgm.mp3"></audio>
+      <div class="note">※ブラウザ仕様で、ユーザー操作（開始ボタン等）なしの自動再生は制限されることがあります</div>
     </div>
 
     <div id="circle"></div>
@@ -145,26 +170,99 @@
   </div>
 
   <script>
-    // DOM要素
-    const circle = document.getElementById('circle');
-    const instruction = document.getElementById('instruction');
-    const startBtn = document.getElementById('startBtn');
-    const stopBtn = document.getElementById('stopBtn');
-    const inhaleSlider = document.getElementById('inhale');
-    const exhaleSlider = document.getElementById('exhale');
-    const inhaleVal = document.getElementById('inhaleVal');
-    const exhaleVal = document.getElementById('exhaleVal');
-    const bgm = document.getElementById('bgm');
+    window.addEventListener('DOMContentLoaded', () => {
+      // DOM要素
+      const circle = document.getElementById('circle');
+      const instruction = document.getElementById('instruction');
+      const startBtn = document.getElementById('startBtn');
+      const stopBtn = document.getElementById('stopBtn');
+      const inhaleSlider = document.getElementById('inhale');
+      const exhaleSlider = document.getElementById('exhale');
+      const inhaleVal = document.getElementById('inhaleVal');
+      const exhaleVal = document.getElementById('exhaleVal');
+      const bgm = document.getElementById('bgm');
 
-    // ★ GitHub Pages上のBGMをデフォルトで読み込む
-    bgm.src = "music/bgm.mp3";
-    bgm.loop = true;     // 繰り返し
-    bgm.volume = 0.6;    // お好みで
+      // BGM設定（お好みで）
+      bgm.loop = true;
+      bgm.volume = 0.6;
 
-    // 呼吸フェーズ設定
-    function getPhases() {
-      const inhaleSec = parseInt(inhaleSlider.value, 10);
-      const exhaleSec = parseInt(exhaleSlider.value, 10);
+      // 呼吸フェーズ生成
+      function getPhases() {
+        const inhaleSec = parseInt(inhaleSlider.value, 10);
+        const exhaleSec = parseInt(exhaleSlider.value, 10);
 
-      inhaleVal.textConte
+        inhaleVal.textContent = inhaleSec + '秒';
+        exhaleVal.textContent = exhaleSec + '秒';
 
+        const inhaleTime = inhaleSec * 1000;
+        const exhaleTime = exhaleSec * 1000;
+
+        return [
+          { text: '吸ってください', duration: inhaleTime, scale: 1.4, opacity: 1.0 },
+          { text: 'そのまま…',     duration: Math.round(inhaleTime * 0.5), scale: 1.4, opacity: 0.85 },
+          { text: '吐いてください', duration: exhaleTime, scale: 0.7, opacity: 1.0 },
+          { text: '休憩…',         duration: Math.round(exhaleTime * 0.3), scale: 0.85, opacity: 0.65 }
+        ];
+      }
+
+      let timerId = null;
+      let phaseIndex = 0;
+      let running = false;
+      let phases = getPhases();
+
+      // 秒数表示は「input」で常に反映
+      inhaleSlider.addEventListener('input', () => { phases = getPhases(); });
+      exhaleSlider.addEventListener('input', () => { phases = getPhases(); });
+
+      function setPhase(index) {
+        const phase = phases[index];
+        instruction.textContent = phase.text;
+
+        // ★ フェーズの長さに合わせて円の動きも同期
+        circle.style.transitionDuration = `${Math.max(200, phase.duration)}ms`;
+
+        circle.style.transform = `scale(${phase.scale})`;
+        circle.style.opacity = String(phase.opacity);
+      }
+
+      function startCycle() {
+        if (running) return;
+        running = true;
+
+        phaseIndex = 0;
+        phases = getPhases();
+        setPhase(phaseIndex);
+
+        // BGM開始（ユーザー操作起点なので通りやすい）
+        bgm.currentTime = 0;
+        bgm.play().catch(() => {
+          // ここに来たら手動再生でOK（controlsがあるので回避可能）
+          console.log('BGMの再生がブロックされました。プレイヤーで手動再生してください。');
+        });
+
+        function next() {
+          if (!running) return;
+          phaseIndex = (phaseIndex + 1) % phases.length;
+          setPhase(phaseIndex);
+          timerId = setTimeout(next, phases[phaseIndex].duration);
+        }
+
+        timerId = setTimeout(next, phases[phaseIndex].duration);
+      }
+
+      function stopCycle() {
+        running = false;
+        if (timerId) clearTimeout(timerId);
+        instruction.textContent = '停止しました。また開始できます。';
+        circle.style.transitionDuration = '300ms';
+        circle.style.transform = 'scale(1)';
+        circle.style.opacity = '0.9';
+        bgm.pause();
+      }
+
+      startBtn.addEventListener('click', startCycle);
+      stopBtn.addEventListener('click', stopCycle);
+    });
+  </script>
+</body>
+</html>
