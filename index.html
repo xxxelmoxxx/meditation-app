@@ -471,46 +471,44 @@ document.addEventListener("DOMContentLoaded", () => {
   function cueHold(){ wood(900); setTimeout(() => wood(900), 150); } // 高2回：止める
 
   function cycle(){
-    if (!running) return;
+  if (!running) return;
 
-    const inhaleMs = parseInt(inhale.value, 10) * 1000;
-    const exhaleMs = parseInt(exhale.value, 10) * 1000;
+  const inhaleMs = parseInt(inhale.value, 10) * 1000;
+  const exhaleMs = parseInt(exhale.value, 10) * 1000;
 
-    // 吸う
-    cueInhale();
-    setPhase("吸って", inhaleMs, SCALE_INHALE_MAX, 1.0, false);
-    startMetronome();
+  // 吸う
+  cueInhale();
+  setPhase("吸って", inhaleMs, SCALE_INHALE_MAX, 1.0, false);
+  startMetronome();
+
+  timer = setTimeout(() => {
+    // 止める（サイズ固定・メトロノーム停止）
+    cueHold();
+    stopMetronome();
+    setPhase("止める", HOLD_MS, currentScale, 0.92, true);
 
     timer = setTimeout(() => {
-      // 止める（サイズ固定）
-      cueHold();
-      stopMetronome(); // ★ ここでメトロノームOFF
-      setPhase("止める", HOLD_MS, currentScale, 0.92, true);
+      // 吐く（メトロノーム再開）
+      cueExhale();
+      setPhase("吐いて", exhaleMs, SCALE_EXHALE_MIN, 1.0, false);
       startMetronome();
 
       timer = setTimeout(() => {
-        // 吐く
-        cueExhale();
-        setPhase("吐いて", exhaleMs, SCALE_EXHALE_MIN, 1.0, false);
-        startMetronome();
+        // 止める（サイズ固定・メトロノーム停止）
+        cueHold();
+        stopMetronome();
+        setPhase("止める", HOLD_MS, currentScale, 0.92, true);
 
         timer = setTimeout(() => {
-          // 止める（サイズ固定）
-          cueHold();
-          stopMetronome(); // ★ ここでメトロノームOFF
-          setPhase("止める", HOLD_MS, currentScale, 0.92, true);
-          startMetronome();
+          cycle();
+        }, HOLD_MS);
 
-          timer = setTimeout(() => {
-            cycle();
-          }, HOLD_MS);
+      }, exhaleMs);
 
-        }, exhaleMs);
+    }, HOLD_MS);
 
-      }, HOLD_MS);
-
-    }, inhaleMs);
-  }
+  }, inhaleMs);
+}
 
   function start(){
     if (running) return;
@@ -548,4 +546,5 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
+
 
