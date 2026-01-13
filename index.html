@@ -269,6 +269,9 @@
         <div id="circle"></div>
       </div>
       <div id="instruction">準備ができたら開始を押してください</div>
+        <div id="lockNote" class="note" style="display:none;">
+        設定は停止後に変更できます
+        </div>
     </div>
 
     <div class="controls">
@@ -285,11 +288,28 @@ document.addEventListener("DOMContentLoaded", () => {
   const exhaleVal = document.getElementById("exhaleVal");
   const circle = document.getElementById("circle");
   const instruction = document.getElementById("instruction");
+  const lockNote = document.getElementById("lockNote");
   const bgm = document.getElementById("bgm");
+  
 
   const themeSelect = document.getElementById("themeSelect");
   const metroOn = document.getElementById("metroOn");
   const metroVol = document.getElementById("metroVol");
+
+  function setControlsEnabled(enabled){
+  const controls = [themeSelect, metroOn, metroVol, inhale, exhale];
+
+  controls.forEach(el => {
+    el.disabled = !enabled;
+  });
+
+  // 見た目でも「ロック中」を分かりやすく（任意）
+  const opacity = enabled ? "1" : "0.6";
+  controls.forEach(el => {
+    el.style.opacity = opacity;
+    el.style.cursor = enabled ? "pointer" : "not-allowed";
+  });
+}
 
   let running = false;
   let timer = null;
@@ -513,6 +533,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function start(){
     if (running) return;
     running = true;
+    
+    setControlsEnabled(false);      // ★ロック
+    lockNote.style.display = "block"; // ★表示
 
     ensureAudio();
     bgm.play().catch(()=>{ /* controlsで手動再生可 */ });
@@ -538,6 +561,9 @@ document.addEventListener("DOMContentLoaded", () => {
     circle.style.transform = "scale(1)";
     circle.style.opacity = "0.92";
     bgm.pause();
+
+    setControlsEnabled(true);
+    lockNote.style.display = "none"; // ★非表示
   }
 
   document.getElementById("start").addEventListener("click", start);
@@ -546,5 +572,6 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
+
 
 
