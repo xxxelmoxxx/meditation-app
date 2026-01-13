@@ -523,7 +523,7 @@ document.addEventListener("DOMContentLoaded", () => {
     cueHold();
     stopMetronome();
     setPhase("止める", HOLD_MS, currentScale, 0.92, true);
-    startCountdown(2); // ★追加
+    showHold();
 
     timer = setTimeout(() => {
       // 吐く（メトロノーム再開）
@@ -537,6 +537,7 @@ document.addEventListener("DOMContentLoaded", () => {
         cueHold();
         stopMetronome();
         setPhase("止める", HOLD_MS, currentScale, 0.92, true);
+        showHold();
 
         timer = setTimeout(() => {
           cycle();
@@ -609,6 +610,10 @@ function clearCountdown(){
   countdown.textContent = "";
 }
 
+function showHold(){
+  clearInterval(countdownTimer);
+  countdown.textContent = "HOLD";
+}
 
   document.getElementById("start").addEventListener("click", start);
   document.getElementById("stop").addEventListener("click", stop);
@@ -616,6 +621,7 @@ function clearCountdown(){
 </script>
 </body>
 </html>
+
 
 
 
