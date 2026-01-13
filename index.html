@@ -484,6 +484,7 @@ document.addEventListener("DOMContentLoaded", () => {
     timer = setTimeout(() => {
       // 止める（サイズ固定）
       cueHold();
+      stopMetronome(); // ★ ここでメトロノームOFF
       setPhase("止める", HOLD_MS, currentScale, 0.92, true);
       startMetronome();
 
@@ -496,6 +497,7 @@ document.addEventListener("DOMContentLoaded", () => {
         timer = setTimeout(() => {
           // 止める（サイズ固定）
           cueHold();
+          stopMetronome(); // ★ ここでメトロノームOFF
           setPhase("止める", HOLD_MS, currentScale, 0.92, true);
           startMetronome();
 
@@ -546,3 +548,4 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
+
