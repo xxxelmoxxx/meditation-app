@@ -26,9 +26,9 @@
       max-width: 400px;
       width: 100%;
     }
-    h1 { 
-      font-size: 24px; 
-      margin-bottom: 24px; 
+    h1 {
+      font-size: 24px;
+      margin-bottom: 24px;
       text-align: center;
       background: linear-gradient(45deg, #fff, #f0f9ff);
       -webkit-background-clip: text;
@@ -40,11 +40,7 @@
       gap: 12px;
       margin-bottom: 24px;
     }
-    label {
-      display: block;
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
+    label { display: block; font-size: 14px; margin-bottom: 4px; }
     input[type="range"] {
       width: 100%;
       height: 6px;
@@ -61,23 +57,25 @@
       background: #38bdf8;
       cursor: pointer;
     }
-    .value {
-      font-size: 16px;
-      font-weight: bold;
-      color: #38bdf8;
-    }
+    .value { font-size: 16px; font-weight: bold; color: #38bdf8; }
+
     #circle {
       width: 180px;
       height: 180px;
       border-radius: 50%;
       background: radial-gradient(circle, #38bdf8, #0ea5e9);
-      transition: all 4s cubic-bezier(0.4, 0, 0.2, 1);
+      /* ここはJSでフェーズごとに transitionDuration を上書きします */
+      transition-property: transform, opacity;
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
       align-items: center;
       justify-content: center;
       margin: 24px auto;
       box-shadow: 0 0 40px rgba(56, 189, 248, 0.5);
+      opacity: 0.9;
+      transform: scale(1);
     }
+
     #instruction {
       font-size: 20px;
       font-weight: 500;
@@ -85,18 +83,9 @@
       text-align: center;
       min-height: 60px;
     }
-    #music-controls {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    #musicFile {
-      margin-bottom: 8px;
-    }
-    #controls {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-    }
+
+    #music-controls { margin-bottom: 20px; text-align: center; }
+    #controls { display: flex; gap: 12px; justify-content: center; }
     button {
       padding: 12px 24px;
       border-radius: 25px;
@@ -107,27 +96,17 @@
       transition: all 0.2s;
       min-width: 80px;
     }
-    #startBtn { 
-      background: linear-gradient(45deg, #22c55e, #16a34a); 
-      color: white; 
-    }
+    #startBtn { background: linear-gradient(45deg, #22c55e, #16a34a); color: white; }
     #startBtn:hover { transform: scale(1.05); }
-    #stopBtn { 
-      background: linear-gradient(45deg, #6b7280, #4b5563); 
-      color: white; 
-    }
+    #stopBtn { background: linear-gradient(45deg, #6b7280, #4b5563); color: white; }
     #stopBtn:hover { transform: scale(1.05); }
-    audio {
-      width: 100%;
-      margin-top: 8px;
-      border-radius: 8px;
-    }
+    audio { width: 100%; margin-top: 8px; border-radius: 8px; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>呼吸瞑想アプリ</h1>
-    
+
     <div class="settings">
       <div>
         <label>吸う（秒）</label>
@@ -142,14 +121,17 @@
     </div>
 
     <div id="music-controls">
-      <label>BGMを選択（MP3）</label>
-      <input type="file" id="musicFile" accept="audio/*">
+      <label>BGM（music/bgm.mp3）</label>
+      <!-- controls は残す：音量調整や手動再生もできて安心 -->
       <audio id="bgm" controls preload="auto"></audio>
+      <div style="font-size:12px; opacity:.85; margin-top:6px;">
+        ※ブラウザ仕様で、ユーザー操作（開始ボタン等）なしの自動再生は制限されることがあります
+      </div>
     </div>
 
     <div id="circle"></div>
     <div id="instruction">準備ができたら「開始」を押してください</div>
-    
+
     <div id="controls">
       <button id="startBtn">開始</button>
       <button id="stopBtn">停止</button>
@@ -166,85 +148,16 @@
     const exhaleSlider = document.getElementById('exhale');
     const inhaleVal = document.getElementById('inhaleVal');
     const exhaleVal = document.getElementById('exhaleVal');
-    const musicFile = document.getElementById('musicFile');
     const bgm = document.getElementById('bgm');
+
+    // ★ GitHub Pages上のBGMをデフォルトで読み込む
+    bgm.src = "music/bgm.mp3";
+    bgm.loop = true;     // 繰り返し
+    bgm.volume = 0.6;    // お好みで
 
     // 呼吸フェーズ設定
     function getPhases() {
-      const inhaleTime = parseInt(inhaleSlider.value) * 1000;
-      const exhaleTime = parseInt(exhaleSlider.value) * 1000;
-      inhaleVal.textContent = inhaleSlider.value + '秒';
-      exhaleVal.textContent = exhaleSlider.value + '秒';
-      
-      return [
-        { text: '吸ってください', duration: inhaleTime, scale: 1.4, opacity: 1.0 },
-        { text: 'そのまま…', duration: inhaleTime * 0.5, scale: 1.4, opacity: 0.8 },
-        { text: '吐いてください', duration: exhaleTime, scale: 0.7, opacity: 1.0 },
-        { text: '休憩…', duration: exhaleTime * 0.3, scale: 0.8, opacity: 0.6 }
-      ];
-    }
+      const inhaleSec = parseInt(inhaleSlider.value, 10);
+      const exhaleSec = parseInt(exhaleSlider.value, 10);
 
-    let timerId = null;
-    let phaseIndex = 0;
-    let running = false;
-    let phases = getPhases();
-
-    // スライダー更新
-    inhaleSlider.addEventListener('input', () => {
-      phases = getPhases();
-    });
-    exhaleSlider.addEventListener('input', () => {
-      phases = getPhases();
-    });
-
-    // MP3ファイル読み込み
-    musicFile.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const url = URL.createObjectURL(file);
-        bgm.src = url;
-      }
-    });
-
-    function setPhase(index) {
-      const phase = phases[index];
-      instruction.textContent = phase.text;
-      circle.style.transform = `scale(${phase.scale})`;
-      circle.style.opacity = phase.opacity;
-    }
-
-    function startCycle() {
-      if (running) return;
-      running = true;
-      phaseIndex = 0;
-      phases = getPhases(); // 最新の設定を反映
-      setPhase(phaseIndex);
-
-      function next() {
-        if (!running) return;
-        phaseIndex = (phaseIndex + 1) % phases.length;
-        setPhase(phaseIndex);
-        timerId = setTimeout(next, phases[phaseIndex].duration);
-      }
-
-      // BGM開始
-      bgm.currentTime = 0;
-      bgm.play().catch(e => console.log('BGM自動再生はブラウザポリシーで制限される場合があります'));
-      
-      timerId = setTimeout(next, phases[phaseIndex].duration);
-    }
-
-    function stopCycle() {
-      running = false;
-      if (timerId) clearTimeout(timerId);
-      instruction.textContent = '停止しました。また開始できます。';
-      circle.style.transform = 'scale(1)';
-      circle.style.opacity = 0.9;
-      bgm.pause();
-    }
-
-    startBtn.addEventListener('click', startCycle);
-    stopBtn.addEventListener('click', stopCycle);
-  </script>
-</body>
-</html>
+      inhaleVal.textConte
