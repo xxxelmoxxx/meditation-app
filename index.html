@@ -1,268 +1,180 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>呼吸瞑想ミニアプリ（BGM対応）</title>
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: #e5e7eb;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
-      box-sizing: border-box;
-    }
-    .container {
-      background: rgba(255,255,255,0.1);
-      padding: 30px;
-      border-radius: 20px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-      max-width: 400px;
-      width: 100%;
-    }
-    h1 {
-      font-size: 24px;
-      margin-bottom: 24px;
-      text-align: center;
-      background: linear-gradient(45deg, #fff, #f0f9ff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .settings {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-    label {
-      display: block;
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
-    input[type="range"] {
-      width: 100%;
-      height: 6px;
-      border-radius: 3px;
-      background: rgba(255,255,255,0.3);
-      outline: none;
-      -webkit-appearance: none;
-    }
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #38bdf8;
-      cursor: pointer;
-    }
-    .value {
-      font-size: 16px;
-      font-weight: bold;
-      color: #38bdf8;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>呼吸瞑想アプリ</title>
 
-    #circle {
-      width: 180px;
-      height: 180px;
-      border-radius: 50%;
-      background: radial-gradient(circle, #38bdf8, #0ea5e9);
-      transition-property: transform, opacity;
-      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 24px auto;
-      box-shadow: 0 0 40px rgba(56, 189, 248, 0.5);
-      opacity: 0.9;
-      transform: scale(1);
-    }
+<style>
+body{
+  font-family: system-ui,sans-serif;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  color:#fff;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+  margin:0;
+}
+.container{
+  width:360px;
+  background:rgba(255,255,255,.15);
+  padding:24px;
+  border-radius:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,.3);
+}
+h1{text-align:center;margin-bottom:20px}
 
-    #instruction {
-      font-size: 20px;
-      font-weight: 500;
-      margin-bottom: 24px;
-      text-align: center;
-      min-height: 60px;
-    }
+.settings{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+label{font-size:14px}
+.value{color:#38bdf8;font-weight:bold}
 
-    #music-controls {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    audio {
-      width: 100%;
-      margin-top: 8px;
-      border-radius: 8px;
-    }
+input[type=range]{width:100%}
 
-    #controls {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-    }
-    button {
-      padding: 12px 24px;
-      border-radius: 25px;
-      border: none;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: 500;
-      transition: all 0.2s;
-      min-width: 80px;
-    }
-    #startBtn {
-      background: linear-gradient(45deg, #22c55e, #16a34a);
-      color: white;
-    }
-    #startBtn:hover { transform: scale(1.05); }
-    #stopBtn {
-      background: linear-gradient(45deg, #6b7280, #4b5563);
-      color: white;
-    }
-    #stopBtn:hover { transform: scale(1.05); }
+#circle{
+  width:180px;height:180px;
+  margin:24px auto;
+  border-radius:50%;
+  background:#38bdf8;
+  transition:transform linear;
+}
 
-    .note {
-      font-size: 12px;
-      opacity: .85;
-      margin-top: 6px;
-      line-height: 1.4;
-    }
-  </style>
+#instruction{
+  text-align:center;
+  font-size:20px;
+  min-height:48px;
+}
+
+button{
+  width:45%;
+  padding:12px;
+  border:none;
+  border-radius:24px;
+  font-size:16px;
+  cursor:pointer;
+}
+#start{background:#22c55e;color:#fff}
+#stop{background:#6b7280;color:#fff}
+
+audio{width:100%;margin-top:12px}
+</style>
 </head>
+
 <body>
-  <div class="container">
-    <h1>呼吸瞑想アプリ</h1>
+<div class="container">
+<h1>呼吸瞑想アプリ</h1>
 
-    <div class="settings">
-      <div>
-        <label>吸う（秒）</label>
-        <input type="range" id="inhale" min="2" max="10" value="4" />
-        <div class="value" id="inhaleVal">4秒</div>
-      </div>
-      <div>
-        <label>吐く（秒）</label>
-        <input type="range" id="exhale" min="4" max="12" value="6" />
-        <div class="value" id="exhaleVal">6秒</div>
-      </div>
-    </div>
-
-    <div id="music-controls">
-      <label>BGM（music/bgm.mp3）</label>
-      <!-- ★ srcを直書き：JSが止まってもBGMが読み込める -->
-      <audio id="bgm" controls preload="auto" src="music/bgm.mp3"></audio>
-      <div class="note">※ブラウザ仕様で、ユーザー操作（開始ボタン等）なしの自動再生は制限されることがあります</div>
-    </div>
-
-    <div id="circle"></div>
-    <div id="instruction">準備ができたら「開始」を押してください</div>
-
-    <div id="controls">
-      <button id="startBtn">開始</button>
-      <button id="stopBtn">停止</button>
-    </div>
+<div class="settings">
+  <div>
+    <label>吸う（秒）</label>
+    <input id="inhale" type="range" min="2" max="10" value="4">
+    <div class="value" id="inhaleVal">4秒</div>
   </div>
+  <div>
+    <label>吐く（秒）</label>
+    <input id="exhale" type="range" min="4" max="12" value="6">
+    <div class="value" id="exhaleVal">6秒</div>
+  </div>
+</div>
 
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      // DOM要素
-      const circle = document.getElementById('circle');
-      const instruction = document.getElementById('instruction');
-      const startBtn = document.getElementById('startBtn');
-      const stopBtn = document.getElementById('stopBtn');
-      const inhaleSlider = document.getElementById('inhale');
-      const exhaleSlider = document.getElementById('exhale');
-      const inhaleVal = document.getElementById('inhaleVal');
-      const exhaleVal = document.getElementById('exhaleVal');
-      const bgm = document.getElementById('bgm');
+<audio id="bgm" src="music/bgm.mp3" preload="auto" controls></audio>
 
-      // BGM設定（お好みで）
-      bgm.loop = true;
-      bgm.volume = 0.6;
+<div id="circle"></div>
+<div id="instruction">準備ができたら開始</div>
 
-      // 呼吸フェーズ生成
-      function getPhases() {
-        const inhaleSec = parseInt(inhaleSlider.value, 10);
-        const exhaleSec = parseInt(exhaleSlider.value, 10);
+<div style="display:flex;justify-content:space-between">
+  <button id="start">開始</button>
+  <button id="stop">停止</button>
+</div>
+</div>
 
-        inhaleVal.textContent = inhaleSec + '秒';
-        exhaleVal.textContent = exhaleSec + '秒';
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
 
-        const inhaleTime = inhaleSec * 1000;
-        const exhaleTime = exhaleSec * 1000;
+const inhale=document.getElementById("inhale");
+const exhale=document.getElementById("exhale");
+const inhaleVal=document.getElementById("inhaleVal");
+const exhaleVal=document.getElementById("exhaleVal");
+const circle=document.getElementById("circle");
+const instruction=document.getElementById("instruction");
+const bgm=document.getElementById("bgm");
 
-        return [
-          { text: '吸ってください', duration: inhaleTime, scale: 1.4, opacity: 1.0 },
-          { text: 'そのまま…',     duration: Math.round(inhaleTime * 0.5), scale: 1.4, opacity: 0.85 },
-          { text: '吐いてください', duration: exhaleTime, scale: 0.7, opacity: 1.0 },
-          { text: '休憩…',         duration: Math.round(exhaleTime * 0.3), scale: 0.85, opacity: 0.65 }
-        ];
-      }
+let timer=null;
+let running=false;
 
-      let timerId = null;
-      let phaseIndex = 0;
-      let running = false;
-      let phases = getPhases();
+/* 秒数表示 */
+function updateValues(){
+  inhaleVal.textContent=inhale.value+"秒";
+  exhaleVal.textContent=exhale.value+"秒";
+}
+inhale.oninput=updateValues;
+exhale.oninput=updateValues;
+updateValues();
 
-      // 秒数表示は「input」で常に反映
-      inhaleSlider.addEventListener('input', () => { phases = getPhases(); });
-      exhaleSlider.addEventListener('input', () => { phases = getPhases(); });
+/* 合図音 */
+const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+function beep(freq=440,duration=0.15){
+  const o=audioCtx.createOscillator();
+  const g=audioCtx.createGain();
+  o.frequency.value=freq;
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start();
+  g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+duration);
+  o.stop(audioCtx.currentTime+duration);
+}
 
-      function setPhase(index) {
-        const phase = phases[index];
-        instruction.textContent = phase.text;
+/* 呼吸1サイクル */
+function cycle(){
+  if(!running) return;
 
-        // ★ フェーズの長さに合わせて円の動きも同期
-        circle.style.transitionDuration = `${Math.max(200, phase.duration)}ms`;
+  const inhaleMs=inhale.value*1000;
+  const exhaleMs=exhale.value*1000;
 
-        circle.style.transform = `scale(${phase.scale})`;
-        circle.style.opacity = String(phase.opacity);
-      }
+  instruction.textContent="吸って";
+  beep(220); // 吸う
+  circle.style.transitionDuration=inhaleMs+"ms";
+  circle.style.transform="scale(1.4)";
 
-      function startCycle() {
-        if (running) return;
-        running = true;
+  timer=setTimeout(()=>{
+    instruction.textContent="止める";
+    beep(880); // 止め
+    timer=setTimeout(()=>{
+      instruction.textContent="吐いて";
+      beep(160); // 吐く
+      circle.style.transitionDuration=exhaleMs+"ms";
+      circle.style.transform="scale(0.7)";
 
-        phaseIndex = 0;
-        phases = getPhases();
-        setPhase(phaseIndex);
+      timer=setTimeout(()=>{
+        instruction.textContent="止める";
+        beep(880);
+        timer=setTimeout(cycle,2000);
+      },exhaleMs);
 
-        // BGM開始（ユーザー操作起点なので通りやすい）
-        bgm.currentTime = 0;
-        bgm.play().catch(() => {
-          // ここに来たら手動再生でOK（controlsがあるので回避可能）
-          console.log('BGMの再生がブロックされました。プレイヤーで手動再生してください。');
-        });
+    },2000);
+  },inhaleMs);
+}
 
-        function next() {
-          if (!running) return;
-          phaseIndex = (phaseIndex + 1) % phases.length;
-          setPhase(phaseIndex);
-          timerId = setTimeout(next, phases[phaseIndex].duration);
-        }
+/* 開始・停止 */
+document.getElementById("start").onclick=()=>{
+  if(running) return;
+  running=true;
+  bgm.play().catch(()=>{});
+  cycle();
+};
 
-        timerId = setTimeout(next, phases[phaseIndex].duration);
-      }
+document.getElementById("stop").onclick=()=>{
+  running=false;
+  clearTimeout(timer);
+  instruction.textContent="停止しました";
+  circle.style.transform="scale(1)";
+  bgm.pause();
+};
 
-      function stopCycle() {
-        running = false;
-        if (timerId) clearTimeout(timerId);
-        instruction.textContent = '停止しました。また開始できます。';
-        circle.style.transitionDuration = '300ms';
-        circle.style.transform = 'scale(1)';
-        circle.style.opacity = '0.9';
-        bgm.pause();
-      }
-
-      startBtn.addEventListener('click', startCycle);
-      stopBtn.addEventListener('click', stopCycle);
-    });
-  </script>
+});
+</script>
 </body>
 </html>
