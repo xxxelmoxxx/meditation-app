@@ -238,11 +238,7 @@
       <label for="metroOn">秒カウント（メトロノーム）</label>
       <input id="metroOn" type="checkbox" checked />
     </div>
-    <div class="row">
-      <label for="metroVol">メトロノーム音量</label>
-      <input id="metroVol" type="range" min="0" max="100" value="35" />
-    </div>
-
+    
     <div class="divider"></div>
 
     <!-- 吸う/吐く（行数詰め） -->
@@ -310,10 +306,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const themeSelect = document.getElementById("themeSelect");
   const metroOn = document.getElementById("metroOn");
-  const metroVol = document.getElementById("metroVol");
 
   function setControlsEnabled(enabled){
-  const controls = [themeSelect, metroOn, metroVol, inhale, exhale];
+  const controls = [themeSelect, metroOn, inhale, exhale];
 
   controls.forEach(el => {
     el.disabled = !enabled;
@@ -419,8 +414,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // メトロノーム（ノイズクリック：チッ）…背景の時間
   function metroClick(accent = false){
-    const vol = Math.max(0, Math.min(1, parseInt(metroVol.value, 10) / 100));
-    if (vol === 0) return;
+    const vol = accent ? 0.18 : 0.12;
 
     ensureAudio();
     const now = audioCtx.currentTime;
@@ -621,6 +615,7 @@ function showHold(){
 </script>
 </body>
 </html>
+
 
 
 
