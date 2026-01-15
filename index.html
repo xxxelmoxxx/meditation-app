@@ -310,6 +310,19 @@ document.addEventListener("DOMContentLoaded", () => {
 // ===== 利用ログ（Google Sheets / Apps Script）
 const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbw-jwQvwnJRL3D34bCXAtt64fxEW-vS58rRPz_hgntAzfQEAFFIVnF5L_5S5d_Wq_sYKA/exec";
 
+function getClientId() {
+  const key = "breathing_client_id";
+  let id = localStorage.getItem(key);
+  if (!id) {
+    // UUIDが使える環境ならそれを優先
+    id = (window.crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : ("id_" + Math.random().toString(36).slice(2) + Date.now().toString(36));
+    localStorage.setItem(key, id);
+  }
+  return id;
+}
+  
 function logUsageToSheet(action) {
   const url = new URL(LOG_ENDPOINT);
 
@@ -317,12 +330,20 @@ function logUsageToSheet(action) {
   url.searchParams.set("action", action);
   url.searchParams.set("inhale", inhale.value);
   url.searchParams.set("exhale", exhale.value);
+  url.searchParams.set("clientId", getClientId());
+  url.searchParams.set("userAgent", navigator.userAgent);
+  url.searchParams.set("referrer", document.referrer || "");
   url.searchParams.set("t", String(Date.now())); // キャッシュ避け
 
   // start時だけ追加で送る
   if (action === "start") {
     url.searchParams.set("theme", themeSelect.value);
     url.searchParams.set("metroOn", metroOn.checked ? "1" : "0");
+  } else {
+    // stop では空にしておく（列数合わせ）
+    url.searchParams.set("theme", "");
+    url.searchParams.set("metroOn", "");
+  }
 
     // 「音楽有無」＝BGM機能を使う/使わない（ON/OFFスイッチが無い場合は常に1）
     // もし今後チェックボックスを付けるなら、その値に置き換え可能
@@ -649,6 +670,7 @@ function showHold(){
 </script>
 </body>
 </html>
+
 
 
 
