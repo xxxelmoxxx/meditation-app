@@ -310,7 +310,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // ===== 利用ログ（Google Sheets / Apps Script）
 const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbw-jwQvwnJRL3D34bCXAtt64fxEW-vS58rRPz_hgntAzfQEAFFIVnF5L_5S5d_Wq_sYKA/exec";
 
-ffunction logUsageToSheet(action) {
+function logUsageToSheet(action) {
   const url = new URL(LOG_ENDPOINT);
   url.searchParams.set("action", action);
   url.searchParams.set("inhale", inhale.value);
@@ -636,6 +636,7 @@ function showHold(){
 </script>
 </body>
 </html>
+
 
 
 
