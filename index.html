@@ -314,7 +314,6 @@ function getClientId() {
   const key = "breathing_client_id";
   let id = localStorage.getItem(key);
   if (!id) {
-    // UUIDが使える環境ならそれを優先
     id = (window.crypto && crypto.randomUUID)
       ? crypto.randomUUID()
       : ("id_" + Math.random().toString(36).slice(2) + Date.now().toString(36));
@@ -322,11 +321,11 @@ function getClientId() {
   }
   return id;
 }
-  
+
 function logUsageToSheet(action) {
   const url = new URL(LOG_ENDPOINT);
 
-  // 共通
+  // 共通（start/stop 両方）
   url.searchParams.set("action", action);
   url.searchParams.set("inhale", inhale.value);
   url.searchParams.set("exhale", exhale.value);
@@ -335,20 +334,14 @@ function logUsageToSheet(action) {
   url.searchParams.set("referrer", document.referrer || "");
   url.searchParams.set("t", String(Date.now())); // キャッシュ避け
 
-  // start時だけ追加で送る
+  // start時だけ設定も送る
   if (action === "start") {
     url.searchParams.set("theme", themeSelect.value);
     url.searchParams.set("metroOn", metroOn.checked ? "1" : "0");
   } else {
-    // stop では空にしておく（列数合わせ）
+    // stop では空（列合わせ）
     url.searchParams.set("theme", "");
     url.searchParams.set("metroOn", "");
-  }
-
-    // 「音楽有無」＝BGM機能を使う/使わない（ON/OFFスイッチが無い場合は常に1）
-    // もし今後チェックボックスを付けるなら、その値に置き換え可能
-    url.searchParams.set("bgmOn", (!bgm.paused || bgm.currentTime > 0) ? "1" : "1");
-    // ↑ 現状「BGMコントロールがあるので基本ON」として 1 固定にしてもOK
   }
 
   // CORS回避：画像リクエストで送る（レスポンスは読まない）
@@ -670,6 +663,7 @@ function showHold(){
 </script>
 </body>
 </html>
+
 
 
 
