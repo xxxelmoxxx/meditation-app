@@ -307,6 +307,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const themeSelect = document.getElementById("themeSelect");
   const metroOn = document.getElementById("metroOn");
 
+// ===== 利用ログ（Google Sheets / Apps Script）
+const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbw-jwQvwnJRL3D34bCXAtt64fxEW-vS58rRPz_hgntAzfQEAFFIVnF5L_5S5d_Wq_sYKA/exec";
+
+function logUsageToSheet(action) {
+  // action: "start" | "stop"
+  fetch(LOG_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action,
+      inhale: inhale.value,
+      exhale: exhale.value
+    })
+  }).catch(err => {
+    console.warn("log failed", err);
+  });
+}
+  
   function setControlsEnabled(enabled){
   const controls = [themeSelect, metroOn, inhale, exhale];
 
@@ -547,7 +565,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function start(){
     if (running) return;
     running = true;
-    
+
+    logUsageToSheet("start"); // ★開始ログ
+
     setControlsEnabled(false);      // ★ロック
     lockNote.style.display = "block"; // ★表示
 
@@ -564,7 +584,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function stop(){
+    if (!running) return;      // ★二重停止ログ防止
     running = false;
+
+    logUsageToSheet("stop");   // ★停止ログ
+
     if (timer) clearTimeout(timer);
     timer = null;
     stopMetronome();
@@ -615,7 +639,6 @@ function showHold(){
 </script>
 </body>
 </html>
-
 
 
 
