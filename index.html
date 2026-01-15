@@ -312,10 +312,23 @@ const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbw-jwQvwnJRL3D34bC
 
 function logUsageToSheet(action) {
   const url = new URL(LOG_ENDPOINT);
+
+  // 共通
   url.searchParams.set("action", action);
   url.searchParams.set("inhale", inhale.value);
   url.searchParams.set("exhale", exhale.value);
   url.searchParams.set("t", String(Date.now())); // キャッシュ避け
+
+  // start時だけ追加で送る
+  if (action === "start") {
+    url.searchParams.set("theme", themeSelect.value);
+    url.searchParams.set("metroOn", metroOn.checked ? "1" : "0");
+
+    // 「音楽有無」＝BGM機能を使う/使わない（ON/OFFスイッチが無い場合は常に1）
+    // もし今後チェックボックスを付けるなら、その値に置き換え可能
+    url.searchParams.set("bgmOn", (!bgm.paused || bgm.currentTime > 0) ? "1" : "1");
+    // ↑ 現状「BGMコントロールがあるので基本ON」として 1 固定にしてもOK
+  }
 
   // CORS回避：画像リクエストで送る（レスポンスは読まない）
   const img = new Image();
@@ -636,6 +649,7 @@ function showHold(){
 </script>
 </body>
 </html>
+
 
 
 
