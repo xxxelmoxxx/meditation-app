@@ -308,20 +308,25 @@ document.addEventListener("DOMContentLoaded", () => {
   const metroOn = document.getElementById("metroOn");
 
 // ===== 利用ログ（Google Sheets / Apps Script）
-const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbw-jwQvwnJRL3D34bCXAtt64fxEW-vS58rRPz_hgntAzfQEAFFIVnF5L_5S5d_Wq_sYKA/exec";
+const LOG_ENDPOINT = "ここに/execのURL";
 
 function logUsageToSheet(action) {
-  // action: "start" | "stop"
   fetch(LOG_ENDPOINT, {
     method: "POST",
+    mode: "cors",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       action,
       inhale: inhale.value,
       exhale: exhale.value
     })
-  }).catch(err => {
-    console.warn("log failed", err);
+  })
+  .then(async (res) => {
+    const text = await res.text();
+    console.log("log res status:", res.status, "body:", text);
+  })
+  .catch((err) => {
+    console.warn("log failed:", err);
   });
 }
   
@@ -639,6 +644,7 @@ function showHold(){
 </script>
 </body>
 </html>
+
 
 
 
