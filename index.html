@@ -280,6 +280,9 @@
         </div>
       </div>
       <div id="instruction">準備ができたら開始を押してください</div>
+      <div id="duration" class="note" style="display:none; font-weight:700;">
+        今回の瞑想時間：00:00
+      </div>
         <div id="lockNote" class="note" style="display:none;">
         設定は停止後に変更できます
         </div>
@@ -300,6 +303,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const circle = document.getElementById("circle");
   const countdown = document.getElementById("countdown");
   const instruction = document.getElementById("instruction");
+  const durationEl = document.getElementById("duration");
   const lockNote = document.getElementById("lockNote");
   const bgm = document.getElementById("bgm");
   
@@ -365,6 +369,7 @@ function logUsageToSheet(action) {
 }
 
   let running = false;
+  let startAtMs = null;
   let timer = null;
   let metroTimer = null;
 
@@ -589,6 +594,9 @@ function logUsageToSheet(action) {
   function start(){
     if (running) return;
     running = true;
+    startAtMs = Date.now();
+    durationEl.style.display = "none";
+    durationEl.textContent = "今回の瞑想時間：00:00";
 
     logUsageToSheet("start"); // ★開始ログ
 
@@ -610,6 +618,16 @@ function logUsageToSheet(action) {
   function stop(){
     if (!running) return;      // ★二重停止ログ防止
     running = false;
+    if (startAtMs) {
+      const diffMs = Date.now() - startAtMs;
+      const totalSec = Math.max(0, Math.floor(diffMs / 1000));
+      const mm = String(Math.floor(totalSec / 60)).padStart(2, "0");
+      const ss = String(totalSec % 60).padStart(2, "0");
+
+      durationEl.textContent = `今回の瞑想時間：${mm}:${ss}`;
+      durationEl.style.display = "block";
+    }
+    startAtMs = null;
 
     logUsageToSheet("stop");   // ★停止ログ
 
@@ -663,6 +681,7 @@ function showHold(){
 </script>
 </body>
 </html>
+
 
 
 
