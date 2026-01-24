@@ -21,6 +21,8 @@
     --stop2:#4b5563;
 
     --shadow: rgba(0,0,0,.30);
+
+    --accent2:#A78BFA;
   }
 
   body{
@@ -225,11 +227,7 @@
     <!-- テーマ -->
     <div class="row">
       <label for="themeSelect">テーマ</label>
-      <select id="themeSelect">
-        <option value="aurora" selected>オーロラ（青紫）</option>
-        <option value="sunset">サンセット（橙ピンク）</option>
-        <option value="forest">フォレスト（深緑）</option>
-      </select>
+      <select id="themeSelect"></select>
     </div>
 
     <div class="divider"></div>
@@ -383,30 +381,359 @@ function logUsageToSheet(action) {
   exhale.addEventListener("input", updateValues);
   updateValues();
 
-  // ===== テーマ
-  const themes = {
-    aurora: {
-      bg1:"#667eea", bg2:"#764ba2", card:"rgba(255,255,255,.15)",
-      accent:"#38bdf8",
-      start1:"#22c55e", start2:"#16a34a",
-      stop1:"#6b7280", stop2:"#4b5563",
-      shadow:"rgba(0,0,0,.30)"
-    },
-    sunset: {
-      bg1:"#ff6a88", bg2:"#ff9a44", card:"rgba(0,0,0,.18)",
-      accent:"#ffe08a",
-      start1:"#0ea5e9", start2:"#2563eb",
-      stop1:"#7c3aed", stop2:"#4c1d95",
-      shadow:"rgba(0,0,0,.33)"
-    },
-    forest: {
-      bg1:"#0f766e", bg2:"#064e3b", card:"rgba(255,255,255,.12)",
-      accent:"#a7f3d0",
-      start1:"#f59e0b", start2:"#d97706",
-      stop1:"#374151", stop2:"#111827",
-      shadow:"rgba(0,0,0,.35)"
+// ===== テーマ（1回選択：10カテゴリ×テーマ）
+const CATEGORY_LABELS = [
+  "Calm / 癒し（やわらかい・落ち着く）",
+  "Fresh / 爽やか（軽い・清潔感）",
+  "Trust / 信頼（ビジネス・堅実）",
+  "Warm / あたたかい（親しみ・安心）",
+  "Pop / 元気（明るい・強い）",
+  "Retro / レトロ（ノスタルジー・世界観）",
+  "Nature / 自然（オーガニック・緑）",
+  "Night / 夜（ダーク・集中）",
+  "Mono / モノトーン（最小構成・汎用）",
+  "Pastel / パステル（可愛い・柔和）",
+];
+
+// テーマ定義（あなたの例をそのまま）
+const THEMES = [
+  // 1) Calm / 癒し
+  {
+    id: "calm_mist",
+    label: "癒し：ミスト",
+    category: "Calm / 癒し（やわらかい・落ち着く）",
+    vars: {
+      "--bg1": "#BFE7F6",
+      "--bg2": "#D9C7FF",
+      "--card": "rgba(255,255,255,.18)",
+      "--text": "#0B1020",
+      "--muted": "rgba(11,16,32,.75)",
+      "--accent": "#2DD4BF",
+      "--accent2": "#A78BFA",
     }
-  };
+  },
+  {
+    id: "calm_sand",
+    label: "癒し：サンド",
+    category: "Calm / 癒し（やわらかい・落ち着く）",
+    vars: {
+      "--bg1": "#F7E7CE",
+      "--bg2": "#F3D6D6",
+      "--card": "rgba(255,255,255,.20)",
+      "--text": "#1F2937",
+      "--muted": "rgba(31,41,55,.72)",
+      "--accent": "#F59E0B",
+      "--accent2": "#FB7185",
+    }
+  },
+
+  // 2) Fresh / 爽やか
+  {
+    id: "fresh_aqua",
+    label: "爽やか：アクア",
+    category: "Fresh / 爽やか（軽い・清潔感）",
+    vars: {
+      "--bg1": "#7DD3FC",
+      "--bg2": "#A7F3D0",
+      "--card": "rgba(255,255,255,.16)",
+      "--text": "#06203A",
+      "--muted": "rgba(6,32,58,.72)",
+      "--accent": "#0EA5E9",
+      "--accent2": "#10B981",
+    }
+  },
+  {
+    id: "fresh_ice",
+    label: "爽やか：アイス",
+    category: "Fresh / 爽やか（軽い・清潔感）",
+    vars: {
+      "--bg1": "#E0F2FE",
+      "--bg2": "#E5E7EB",
+      "--card": "rgba(255,255,255,.22)",
+      "--text": "#0F172A",
+      "--muted": "rgba(15,23,42,.70)",
+      "--accent": "#38BDF8",
+      "--accent2": "#94A3B8",
+    }
+  },
+
+  // 3) Trust / 信頼
+  {
+    id: "trust_navy",
+    label: "信頼：ネイビー",
+    category: "Trust / 信頼（ビジネス・堅実）",
+    vars: {
+      "--bg1": "#0F172A",
+      "--bg2": "#1F2937",
+      "--card": "rgba(255,255,255,.08)",
+      "--text": "#F8FAFC",
+      "--muted": "rgba(248,250,252,.78)",
+      "--accent": "#60A5FA",
+      "--accent2": "#94A3B8",
+    }
+  },
+  {
+    id: "trust_brick",
+    label: "信頼：ブリック",
+    category: "Trust / 信頼（ビジネス・堅実）",
+    vars: {
+      "--bg1": "#111827",
+      "--bg2": "#374151",
+      "--card": "rgba(255,255,255,.09)",
+      "--text": "#F9FAFB",
+      "--muted": "rgba(249,250,251,.76)",
+      "--accent": "#B45309",
+      "--accent2": "#93C5FD",
+    }
+  },
+
+  // 4) Warm / あたたかい
+  {
+    id: "warm_sunset",
+    label: "あたたかい：サンセット",
+    category: "Warm / あたたかい（親しみ・安心）",
+    vars: {
+      "--bg1": "#FB923C",
+      "--bg2": "#F472B6",
+      "--card": "rgba(255,255,255,.14)",
+      "--text": "#2A0A0A",
+      "--muted": "rgba(42,10,10,.72)",
+      "--accent": "#F97316",
+      "--accent2": "#EC4899",
+    }
+  },
+  {
+    id: "warm_cocoa",
+    label: "あたたかい：ココア",
+    category: "Warm / あたたかい（親しみ・安心）",
+    vars: {
+      "--bg1": "#A16207",
+      "--bg2": "#7C2D12",
+      "--card": "rgba(255,255,255,.10)",
+      "--text": "#FFF7ED",
+      "--muted": "rgba(255,247,237,.78)",
+      "--accent": "#FBBF24",
+      "--accent2": "#FDBA74",
+    }
+  },
+
+  // 5) Pop / 元気
+  {
+    id: "pop_candy",
+    label: "元気：キャンディ",
+    category: "Pop / 元気（明るい・強い）",
+    vars: {
+      "--bg1": "#22C55E",
+      "--bg2": "#06B6D4",
+      "--card": "rgba(255,255,255,.13)",
+      "--text": "#04130C",
+      "--muted": "rgba(4,19,12,.70)",
+      "--accent": "#FDE047",
+      "--accent2": "#FB7185",
+    }
+  },
+  {
+    id: "pop_tropical",
+    label: "元気：トロピカル",
+    category: "Pop / 元気（明るい・強い）",
+    vars: {
+      "--bg1": "#38BDF8",
+      "--bg2": "#F97316",
+      "--card": "rgba(255,255,255,.12)",
+      "--text": "#0B1220",
+      "--muted": "rgba(11,18,32,.72)",
+      "--accent": "#A3E635",
+      "--accent2": "#F43F5E",
+    }
+  },
+
+  // 6) Retro / レトロ
+  {
+    id: "retro_aqua_gold",
+    label: "レトロ：アクア×ゴールド",
+    category: "Retro / レトロ（ノスタルジー・世界観）",
+    vars: {
+      "--bg1": "#67E8F9",
+      "--bg2": "#FDE68A",
+      "--card": "rgba(255,255,255,.18)",
+      "--text": "#1F2937",
+      "--muted": "rgba(31,41,55,.72)",
+      "--accent": "#CA8A04",
+      "--accent2": "#0EA5E9",
+    }
+  },
+  {
+    id: "retro_olive",
+    label: "レトロ：オリーブ",
+    category: "Retro / レトロ（ノスタルジー・世界観）",
+    vars: {
+      "--bg1": "#A3A635",
+      "--bg2": "#0F766E",
+      "--card": "rgba(255,255,255,.10)",
+      "--text": "#F8FAFC",
+      "--muted": "rgba(248,250,252,.78)",
+      "--accent": "#F59E0B",
+      "--accent2": "#EAB308",
+    }
+  },
+
+  // 7) Nature / 自然
+  {
+    id: "nature_forest",
+    label: "自然：フォレスト",
+    category: "Nature / 自然（オーガニック・緑）",
+    vars: {
+      "--bg1": "#14532D",
+      "--bg2": "#0F766E",
+      "--card": "rgba(255,255,255,.09)",
+      "--text": "#ECFDF5",
+      "--muted": "rgba(236,253,245,.78)",
+      "--accent": "#84CC16",
+      "--accent2": "#FDE047",
+    }
+  },
+  {
+    id: "nature_meadow",
+    label: "自然：メドウ",
+    category: "Nature / 自然（オーガニック・緑）",
+    vars: {
+      "--bg1": "#A7F3D0",
+      "--bg2": "#BBF7D0",
+      "--card": "rgba(255,255,255,.20)",
+      "--text": "#052016",
+      "--muted": "rgba(5,32,22,.70)",
+      "--accent": "#22C55E",
+      "--accent2": "#10B981",
+    }
+  },
+
+  // 8) Night / 夜
+  {
+    id: "night_indigo",
+    label: "夜：インディゴ",
+    category: "Night / 夜（ダーク・集中）",
+    vars: {
+      "--bg1": "#111827",
+      "--bg2": "#312E81",
+      "--card": "rgba(255,255,255,.08)",
+      "--text": "#F8FAFC",
+      "--muted": "rgba(248,250,252,.76)",
+      "--accent": "#A78BFA",
+      "--accent2": "#38BDF8",
+    }
+  },
+  {
+    id: "night_aurora",
+    label: "夜：オーロラ",
+    category: "Night / 夜（ダーク・集中）",
+    vars: {
+      "--bg1": "#020617",
+      "--bg2": "#064E3B",
+      "--card": "rgba(255,255,255,.07)",
+      "--text": "#E2E8F0",
+      "--muted": "rgba(226,232,240,.75)",
+      "--accent": "#2DD4BF",
+      "--accent2": "#84CC16",
+    }
+  },
+
+  // 9) Mono / モノトーン
+  {
+    id: "mono_light",
+    label: "モノ：ライト",
+    category: "Mono / モノトーン（最小構成・汎用）",
+    vars: {
+      "--bg1": "#F8FAFC",
+      "--bg2": "#E5E7EB",
+      "--card": "rgba(0,0,0,.06)",
+      "--text": "#0F172A",
+      "--muted": "rgba(15,23,42,.70)",
+      "--accent": "#111827",
+      "--accent2": "#64748B",
+    }
+  },
+  {
+    id: "mono_dark",
+    label: "モノ：ダーク",
+    category: "Mono / モノトーン（最小構成・汎用）",
+    vars: {
+      "--bg1": "#0B1020",
+      "--bg2": "#111827",
+      "--card": "rgba(255,255,255,.08)",
+      "--text": "#F1F5F9",
+      "--muted": "rgba(241,245,249,.76)",
+      "--accent": "#E5E7EB",
+      "--accent2": "#94A3B8",
+    }
+  },
+
+  // 10) Pastel / パステル
+  {
+    id: "pastel_sakura",
+    label: "パステル：さくら",
+    category: "Pastel / パステル（可愛い・柔和）",
+    vars: {
+      "--bg1": "#FBCFE8",
+      "--bg2": "#E9D5FF",
+      "--card": "rgba(255,255,255,.22)",
+      "--text": "#1F2937",
+      "--muted": "rgba(31,41,55,.70)",
+      "--accent": "#FB7185",
+      "--accent2": "#A78BFA",
+    }
+  },
+  {
+    id: "pastel_lemon",
+    label: "パステル：レモン",
+    category: "Pastel / パステル（可愛い・柔和）",
+    vars: {
+      "--bg1": "#FEF9C3",
+      "--bg2": "#CFFAFE",
+      "--card": "rgba(255,255,255,.22)",
+      "--text": "#1F2937",
+      "--muted": "rgba(31,41,55,.70)",
+      "--accent": "#EAB308",
+      "--accent2": "#06B6D4",
+    }
+  },
+];
+
+function applyThemeById(themeId){
+  const theme = THEMES.find(t => t.id === themeId);
+  if (!theme) return;
+
+  const root = document.documentElement;
+  Object.entries(theme.vars).forEach(([k, v]) => root.style.setProperty(k, v));
+
+  // accent2 はCSS側で未使用でもOK（将来用）
+}
+
+// select を「1回で選べる」形で生成（カテゴリは短縮せず、そのまま表示）
+function buildThemeSelect(){
+  themeSelect.innerHTML = "";
+
+  // カテゴリ順を固定（あなたが指定した10カテゴリの順）
+  CATEGORY_LABELS.forEach(catLabel => {
+    const group = document.createElement("optgroup");
+    group.label = catLabel;
+
+    THEMES.filter(t => t.category === catLabel).forEach(t => {
+      const opt = document.createElement("option");
+      opt.value = t.id;
+      opt.textContent = `${t.category} / ${t.label}`; // 1回で分かるように表示
+      group.appendChild(opt);
+    });
+
+    themeSelect.appendChild(group);
+  });
+
+  // デフォルト（今までの aurora 相当の雰囲気に近いもの）
+  themeSelect.value = "calm_mist";
+  applyThemeById(themeSelect.value);
+}
+
+themeSelect.addEventListener("change", () => applyThemeById(themeSelect.value));
+buildThemeSelect();
 
   function applyTheme(key){
     const t = themes[key] || themes.aurora;
@@ -682,6 +1009,7 @@ function showHold(){
 </script>
 </body>
 </html>
+
 
 
 
