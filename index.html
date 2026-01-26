@@ -694,49 +694,49 @@ document.addEventListener("DOMContentLoaded", () => {
     durationEl.style.display = "block";
   }
 
-  function cycle(){
-    if (!running) return;
-
-    const inhaleMs = parseInt(inhale.value, 10) * 1000;
-    const exhaleMs = parseInt(exhale.value, 10) * 1000;
-
-    // 吸う
-    cueInhale();
-    setPhase("吸って", inhaleMs, SCALE_INHALE_MAX, 1.0, false);
-    startCountdown(inhale.value);
-    startMetronome();
-
-    timer = setTimeout(() => {
-      // 止める（メトロノーム停止）
-      cueHold();
-      stopMetronome();
-      setPhase("止める", HOLD_MS, currentScale, 0.92, true);
-      showHold();
-
+    function cycle(){
+      if (!running) return;
+    
+      const inhaleMs = parseInt(inhale.value, 10) * 1000;
+      const exhaleMs = parseInt(exhale.value, 10) * 1000;
+    
+      // ① 吐く（先に吐く）
+      cueExhale();
+      setPhase("吐いて", exhaleMs, SCALE_EXHALE_MIN, 1.0, false);
+      startCountdown(exhale.value);
+      startMetronome();
+    
       timer = setTimeout(() => {
-        // 吐く（メトロノーム再開）
-        cueExhale();
-        setPhase("吐いて", exhaleMs, SCALE_EXHALE_MIN, 1.0, false);
-        startCountdown(exhale.value);
-        startMetronome();
-
+        // ② 止める（メトロノーム停止）
+        cueHold();
+        stopMetronome();
+        setPhase("止める", HOLD_MS, currentScale, 0.92, true);
+        showHold();
+    
         timer = setTimeout(() => {
-          // 止める（メトロノーム停止）
-          cueHold();
-          stopMetronome();
-          setPhase("止める", HOLD_MS, currentScale, 0.92, true);
-          showHold();
-
+          // ③ 吸う（次に吸う：メトロノーム再開）
+          cueInhale();
+          setPhase("吸って", inhaleMs, SCALE_INHALE_MAX, 1.0, false);
+          startCountdown(inhale.value);
+          startMetronome();
+    
           timer = setTimeout(() => {
-            cycle();
-          }, HOLD_MS);
-
-        }, exhaleMs);
-
-      }, HOLD_MS);
-
-    }, inhaleMs);
-  }
+            // ④ 止める（メトロノーム停止）
+            cueHold();
+            stopMetronome();
+            setPhase("止める", HOLD_MS, currentScale, 0.92, true);
+            showHold();
+    
+            timer = setTimeout(() => {
+              cycle(); // ⑤ 繰り返し（吐くから始まる）
+            }, HOLD_MS);
+    
+          }, inhaleMs);
+    
+        }, HOLD_MS);
+    
+      }, exhaleMs);
+    }
 
   function start(){
     if (running) return;
@@ -801,4 +801,5 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
+
 
