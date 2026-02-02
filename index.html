@@ -100,6 +100,34 @@
     flex-direction:column;
     gap: 4px;
   }
+
+  .rangeRow{
+    display:flex;
+    align-items:center;
+    gap: 8px;
+  }
+  
+  .nudge{
+    width: 36px;
+    height: 32px;
+    border: 1px solid rgba(255,255,255,.25);
+    background: rgba(0,0,0,.12);
+    color: var(--text);
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .nudge:active{ transform: scale(0.98); }
+  .nudge:disabled{
+    opacity: .5;
+    cursor: not-allowed;
+  }
+
   .lineLabel{
     display:flex;
     justify-content:space-between;
@@ -254,20 +282,16 @@
 
     <!-- 吸う/吐く -->
     <div class="ranges">
-      <div class="rangeBox">
-        <div class="lineLabel">
-          <span>吸う（秒）</span>
-          <span class="val" id="inhaleVal">6秒</span>
-        </div>
+      <div class="rangeRow">
+        <button type="button" class="nudge" id="inhaleMinus" aria-label="吸うを1秒短く">−</button>
         <input id="inhale" type="range" min="2" max="10" value="6" />
+        <button type="button" class="nudge" id="inhalePlus" aria-label="吸うを1秒長く">＋</button>
       </div>
 
-      <div class="rangeBox">
-        <div class="lineLabel">
-          <span>吐く（秒）</span>
-          <span class="val" id="exhaleVal">8秒</span>
-        </div>
+      <div class="rangeRow">
+        <button type="button" class="nudge" id="exhaleMinus" aria-label="吐くを1秒短く">−</button>
         <input id="exhale" type="range" min="4" max="12" value="8" />
+        <button type="button" class="nudge" id="exhalePlus" aria-label="吐くを1秒長く">＋</button>
       </div>
     </div>
 
@@ -432,6 +456,26 @@ document.addEventListener("DOMContentLoaded", () => {
   const lockNote = document.getElementById("lockNote");
   const durationEl = document.getElementById("duration");
   const bgm = document.getElementById("bgm");
+  const inhaleMinus = document.getElementById("inhaleMinus");
+  const inhalePlus  = document.getElementById("inhalePlus");
+  const exhaleMinus = document.getElementById("exhaleMinus");
+  const exhalePlus  = document.getElementById("exhalePlus");
+  
+  function bumpRange(rangeEl, delta){
+    const min = parseInt(rangeEl.min, 10);
+    const max = parseInt(rangeEl.max, 10);
+    const cur = parseInt(rangeEl.value, 10);
+    const next = Math.max(min, Math.min(max, cur + delta));
+    rangeEl.value = String(next);
+  
+    // スライダーを動かしたのと同じ扱いにする
+    rangeEl.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+  
+  inhaleMinus.addEventListener("click", () => bumpRange(inhale, -1));
+  inhalePlus.addEventListener("click",  () => bumpRange(inhale, +1));
+  exhaleMinus.addEventListener("click", () => bumpRange(exhale, -1));
+  exhalePlus.addEventListener("click",  () => bumpRange(exhale, +1));  
 
   const themeSelect = document.getElementById("themeSelect");
   const metroOn = document.getElementById("metroOn");
@@ -483,7 +527,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ===== UIロック
   function setControlsEnabled(enabled){
-    const controls = [themeSelect, metroOn, inhale, exhale];
+      const controls = [
+        themeSelect, metroOn, inhale, exhale,
+        inhaleMinus, inhalePlus, exhaleMinus, exhalePlus
+      ];
     controls.forEach(el => { el.disabled = !enabled; });
 
     const opacity = enabled ? "1" : "0.6";
@@ -823,6 +870,7 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
+
 
 
 
