@@ -436,15 +436,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const themeSelect = document.getElementById("themeSelect");
   const metroOn = document.getElementById("metroOn");
 
-  // ===== テーマプルダウン（1回選択 / optgroupで見やすく）
+  // ===== テーマプルダウン
   function buildThemeSelect(){
     const byCat = new Map();
     THEMES.forEach(t => {
       if (!byCat.has(t.category)) byCat.set(t.category, []);
       byCat.get(t.category).push(t);
     });
-
+  
     themeSelect.innerHTML = "";
+  
+    // ★ ランダム追加（最上段）
+    const randomOpt = document.createElement("option");
+    randomOpt.value = "random";
+    randomOpt.textContent = "🎲 ランダム";
+    themeSelect.appendChild(randomOpt);
+  
     Array.from(byCat.keys()).forEach(cat => {
       const og = document.createElement("optgroup");
       og.label = cat;
@@ -457,6 +464,7 @@ document.addEventListener("DOMContentLoaded", () => {
       themeSelect.appendChild(og);
     });
   }
+
   buildThemeSelect();
 
   const THEME_KEY = "breathing_theme_id";
@@ -746,34 +754,37 @@ document.addEventListener("DOMContentLoaded", () => {
   function start(){
     if (running) return;
     running = true;
-
-    // ★ ランダムテーマ適用
-    const randomTheme = pickRandomTheme();
-    applyTheme(randomTheme.id);
-
-    // UIのselectも同期（表示ズレ防止）
-    themeSelect.value = randomTheme.id;
-
+  
+    // ★ テーマ判定
+    let appliedThemeId = themeSelect.value;
+  
+    if (appliedThemeId === "random") {
+      const randomTheme = pickRandomTheme();
+      appliedThemeId = randomTheme.id;
+      applyTheme(appliedThemeId);
+    } else {
+      applyTheme(appliedThemeId);
+    }
+  
+    // UI同期（ランダム時は実際のテーマ名に変える）
+    themeSelect.value = appliedThemeId;
+  
     logUsageToSheet("start");
-    
-    // ロック＆案内
+  
     setControlsEnabled(false);
     lockNote.style.display = "block";
-
-    // 瞑想時間開始
+  
     startAtMs = Date.now();
     resetDurationView();
-
-    // 音の初期化
+  
     ensureAudio();
-    bgm.play().catch(()=>{ /* controlsで手動再生可 */ });
-
-    // 初期状態
+    bgm.play().catch(()=>{});
+  
     currentScale = 1.0;
     circle.style.transitionDuration = "200ms";
     circle.style.transform = "scale(1)";
     circle.style.opacity = "0.92";
-
+  
     cycle();
   }
 
@@ -812,6 +823,7 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
+
 
 
 
