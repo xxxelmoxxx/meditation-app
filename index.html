@@ -416,6 +416,11 @@ document.addEventListener("DOMContentLoaded", () => {
     Object.entries(theme.vars).forEach(([k,v]) => root.style.setProperty(k, v));
   }
 
+  function pickRandomTheme() {
+    const index = Math.floor(Math.random() * THEMES.length);
+    return THEMES[index];
+  }
+
   // ===== DOM
   const inhale = document.getElementById("inhale");
   const exhale = document.getElementById("exhale");
@@ -742,6 +747,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (running) return;
     running = true;
 
+    // ★ ランダムテーマ適用
+    const randomTheme = pickRandomTheme();
+    applyTheme(randomTheme.id);
+
+    // UIのselectも同期（表示ズレ防止）
+    themeSelect.value = randomTheme.id;
+
+    logUsageToSheet("start");
+    
     // ロック＆案内
     setControlsEnabled(false);
     lockNote.style.display = "block";
@@ -749,9 +763,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // 瞑想時間開始
     startAtMs = Date.now();
     resetDurationView();
-
-    // ログ
-    logUsageToSheet("start");
 
     // 音の初期化
     ensureAudio();
@@ -801,5 +812,6 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
+
 
 
