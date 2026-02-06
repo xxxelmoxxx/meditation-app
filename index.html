@@ -10,7 +10,6 @@
 
 <style>
   :root{
-    /* デフォルト（最初に適用されるテーマ） */
     --bg1:#667eea;
     --bg2:#764ba2;
     --card: rgba(255,255,255,.15);
@@ -20,7 +19,6 @@
     --accent:#38bdf8;
     --accent2:#a78bfa;
 
-    /* ボタンは共通（増殖を避ける） */
     --start1:#22c55e;
     --start2:#16a34a;
     --stop1:#6b7280;
@@ -88,17 +86,31 @@
     margin: 10px 0;
   }
 
-  /* 吸う/吐くを「行数詰め」 */
   .ranges{
     display:grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
     margin-top: 6px;
   }
+
   .rangeBox{
     display:flex;
     flex-direction:column;
-    gap: 4px;
+    gap: 6px;
+  }
+
+  .lineLabel{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.1;
+  }
+  .lineLabel .val{
+    color: var(--accent);
+    font-weight: 800;
   }
 
   .rangeRow{
@@ -106,7 +118,7 @@
     align-items:center;
     gap: 8px;
   }
-  
+
   .nudge{
     width: 36px;
     height: 32px;
@@ -126,20 +138,6 @@
   .nudge:disabled{
     opacity: .5;
     cursor: not-allowed;
-  }
-
-  .lineLabel{
-    display:flex;
-    justify-content:space-between;
-    align-items:baseline;
-    gap: 10px;
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.1;
-  }
-  .lineLabel .val{
-    color: var(--accent);
-    font-weight: 800;
   }
 
   input[type=range]{
@@ -173,7 +171,6 @@
     margin-top: 6px;
   }
 
-  /* 円エリアとテキストエリア分離（被り防止） */
   .visual{
     margin-top: 10px;
     display:flex;
@@ -239,7 +236,7 @@
     gap: 12px;
   }
 
-  button{
+  button#start, button#stop{
     width: 50%;
     padding: 12px;
     border: none;
@@ -249,7 +246,7 @@
     color: white;
     transition: transform .15s ease;
   }
-  button:hover{ transform: scale(1.03); }
+  button#start:hover, button#stop:hover{ transform: scale(1.03); }
 
   #start{
     background: linear-gradient(45deg, var(--start1), var(--start2));
@@ -264,7 +261,6 @@
   <div class="container">
     <h1>呼吸瞑想アプリ</h1>
 
-    <!-- テーマ（1回選択） -->
     <div class="row">
       <label for="themeSelect">テーマ</label>
       <select id="themeSelect"></select>
@@ -272,7 +268,6 @@
 
     <div class="divider"></div>
 
-    <!-- メトロノーム -->
     <div class="row">
       <label for="metroOn">秒カウント（メトロノーム）</label>
       <input id="metroOn" type="checkbox" checked />
@@ -280,22 +275,33 @@
 
     <div class="divider"></div>
 
-    <!-- 吸う/吐く -->
+    <!-- ★ここが修正ポイント：inhaleVal / exhaleVal をHTMLに追加 -->
     <div class="ranges">
-      <div class="rangeRow">
-        <button type="button" class="nudge" id="inhaleMinus" aria-label="吸うを1秒短く">−</button>
-        <input id="inhale" type="range" min="2" max="10" value="6" />
-        <button type="button" class="nudge" id="inhalePlus" aria-label="吸うを1秒長く">＋</button>
+      <div class="rangeBox">
+        <div class="lineLabel">
+          <span>吸う（秒）</span>
+          <span class="val" id="inhaleVal">6秒</span>
+        </div>
+        <div class="rangeRow">
+          <button type="button" class="nudge" id="inhaleMinus" aria-label="吸うを1秒短く">−</button>
+          <input id="inhale" type="range" min="2" max="10" value="6" />
+          <button type="button" class="nudge" id="inhalePlus" aria-label="吸うを1秒長く">＋</button>
+        </div>
       </div>
 
-      <div class="rangeRow">
-        <button type="button" class="nudge" id="exhaleMinus" aria-label="吐くを1秒短く">−</button>
-        <input id="exhale" type="range" min="4" max="12" value="8" />
-        <button type="button" class="nudge" id="exhalePlus" aria-label="吐くを1秒長く">＋</button>
+      <div class="rangeBox">
+        <div class="lineLabel">
+          <span>吐く（秒）</span>
+          <span class="val" id="exhaleVal">8秒</span>
+        </div>
+        <div class="rangeRow">
+          <button type="button" class="nudge" id="exhaleMinus" aria-label="吐くを1秒短く">−</button>
+          <input id="exhale" type="range" min="4" max="12" value="8" />
+          <button type="button" class="nudge" id="exhalePlus" aria-label="吐くを1秒長く">＋</button>
+        </div>
       </div>
     </div>
 
-    <!-- BGM（自動ループ） -->
     <audio id="bgm" src="music/bgm.mp3" preload="auto" controls loop></audio>
 
     <div class="note">
@@ -305,7 +311,6 @@
       BGM：優しい灯火 (Tenderly glow) / 蒲鉾さちこ（DOVA-SYNDROME）
     </div>
 
-    <!-- ビジュアル -->
     <div class="visual">
       <div class="circleWrap">
         <div id="circle">
@@ -330,9 +335,7 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-  // ===== テーマ定義（あなたの提示データを内蔵）
   const THEMES = [
-    // 1) Calm / 癒し
     { id:"calm_mist", label:"癒し：ミスト", category:"Calm", vars:{
       "--bg1":"#BFE7F6","--bg2":"#D9C7FF","--card":"rgba(255,255,255,.18)","--text":"#0B1020",
       "--muted":"rgba(11,16,32,.75)","--accent":"#2DD4BF","--accent2":"#A78BFA"
@@ -341,8 +344,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "--bg1":"#F7E7CE","--bg2":"#F3D6D6","--card":"rgba(255,255,255,.20)","--text":"#1F2937",
       "--muted":"rgba(31,41,55,.72)","--accent":"#F59E0B","--accent2":"#FB7185"
     }},
-
-    // 2) Fresh / 爽やか
     { id:"fresh_aqua", label:"爽やか：アクア", category:"Fresh", vars:{
       "--bg1":"#7DD3FC","--bg2":"#A7F3D0","--card":"rgba(255,255,255,.16)","--text":"#06203A",
       "--muted":"rgba(6,32,58,.72)","--accent":"#0EA5E9","--accent2":"#10B981"
@@ -351,8 +352,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "--bg1":"#E0F2FE","--bg2":"#E5E7EB","--card":"rgba(255,255,255,.22)","--text":"#0F172A",
       "--muted":"rgba(15,23,42,.70)","--accent":"#38BDF8","--accent2":"#94A3B8"
     }},
-
-    // 3) Trust / 信頼
     { id:"trust_navy", label:"信頼：ネイビー", category:"Trust", vars:{
       "--bg1":"#0F172A","--bg2":"#1F2937","--card":"rgba(255,255,255,.08)","--text":"#F8FAFC",
       "--muted":"rgba(248,250,252,.78)","--accent":"#60A5FA","--accent2":"#94A3B8"
@@ -361,8 +360,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "--bg1":"#111827","--bg2":"#374151","--card":"rgba(255,255,255,.09)","--text":"#F9FAFB",
       "--muted":"rgba(249,250,251,.76)","--accent":"#B45309","--accent2":"#93C5FD"
     }},
-
-    // 4) Warm / あたたかい
     { id:"warm_sunset", label:"あたたかい：サンセット", category:"Warm", vars:{
       "--bg1":"#FB923C","--bg2":"#F472B6","--card":"rgba(255,255,255,.14)","--text":"#2A0A0A",
       "--muted":"rgba(42,10,10,.72)","--accent":"#F97316","--accent2":"#EC4899"
@@ -371,8 +368,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "--bg1":"#A16207","--bg2":"#7C2D12","--card":"rgba(255,255,255,.10)","--text":"#FFF7ED",
       "--muted":"rgba(255,247,237,.78)","--accent":"#FBBF24","--accent2":"#FDBA74"
     }},
-
-    // 5) Pop / 元気
     { id:"pop_candy", label:"元気：キャンディ", category:"Pop", vars:{
       "--bg1":"#22C55E","--bg2":"#06B6D4","--card":"rgba(255,255,255,.13)","--text":"#04130C",
       "--muted":"rgba(4,19,12,.70)","--accent":"#FDE047","--accent2":"#FB7185"
@@ -381,8 +376,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "--bg1":"#38BDF8","--bg2":"#F97316","--card":"rgba(255,255,255,.12)","--text":"#0B1220",
       "--muted":"rgba(11,18,32,.72)","--accent":"#A3E635","--accent2":"#F43F5E"
     }},
-
-    // 6) Retro / レトロ
     { id:"retro_aqua_gold", label:"レトロ：アクア×ゴールド", category:"Retro", vars:{
       "--bg1":"#67E8F9","--bg2":"#FDE68A","--card":"rgba(255,255,255,.18)","--text":"#1F2937",
       "--muted":"rgba(31,41,55,.72)","--accent":"#CA8A04","--accent2":"#0EA5E9"
@@ -391,8 +384,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "--bg1":"#A3A635","--bg2":"#0F766E","--card":"rgba(255,255,255,.10)","--text":"#F8FAFC",
       "--muted":"rgba(248,250,252,.78)","--accent":"#F59E0B","--accent2":"#EAB308"
     }},
-
-    // 7) Nature / 自然
     { id:"nature_forest", label:"自然：フォレスト", category:"Nature", vars:{
       "--bg1":"#14532D","--bg2":"#0F766E","--card":"rgba(255,255,255,.09)","--text":"#ECFDF5",
       "--muted":"rgba(236,253,245,.78)","--accent":"#84CC16","--accent2":"#FDE047"
@@ -401,8 +392,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "--bg1":"#A7F3D0","--bg2":"#BBF7D0","--card":"rgba(255,255,255,.20)","--text":"#052016",
       "--muted":"rgba(5,32,22,.70)","--accent":"#22C55E","--accent2":"#10B981"
     }},
-
-    // 8) Night / 夜
     { id:"night_indigo", label:"夜：インディゴ", category:"Night", vars:{
       "--bg1":"#111827","--bg2":"#312E81","--card":"rgba(255,255,255,.08)","--text":"#F8FAFC",
       "--muted":"rgba(248,250,252,.76)","--accent":"#A78BFA","--accent2":"#38BDF8"
@@ -411,8 +400,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "--bg1":"#020617","--bg2":"#064E3B","--card":"rgba(255,255,255,.07)","--text":"#E2E8F0",
       "--muted":"rgba(226,232,240,.75)","--accent":"#2DD4BF","--accent2":"#84CC16"
     }},
-
-    // 9) Mono / モノトーン
     { id:"mono_light", label:"モノ：ライト", category:"Mono", vars:{
       "--bg1":"#F8FAFC","--bg2":"#E5E7EB","--card":"rgba(0,0,0,.06)","--text":"#0F172A",
       "--muted":"rgba(15,23,42,.70)","--accent":"#111827","--accent2":"#64748B"
@@ -421,8 +408,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "--bg1":"#0B1020","--bg2":"#111827","--card":"rgba(255,255,255,.08)","--text":"#F1F5F9",
       "--muted":"rgba(241,245,249,.76)","--accent":"#E5E7EB","--accent2":"#94A3B8"
     }},
-
-    // 10) Pastel / パステル
     { id:"pastel_sakura", label:"パステル：さくら", category:"Pastel", vars:{
       "--bg1":"#FBCFE8","--bg2":"#E9D5FF","--card":"rgba(255,255,255,.22)","--text":"#1F2937",
       "--muted":"rgba(31,41,55,.70)","--accent":"#FB7185","--accent2":"#A78BFA"
@@ -436,16 +421,16 @@ document.addEventListener("DOMContentLoaded", () => {
   function applyTheme(themeId){
     const theme = THEMES.find(t => t.id === themeId);
     if (!theme) return;
-    const root = document.documentElement;
-    Object.entries(theme.vars).forEach(([k,v]) => root.style.setProperty(k, v));
+    Object.entries(theme.vars).forEach(([k,v]) => document.documentElement.style.setProperty(k, v));
   }
 
   function pickRandomTheme() {
-    const index = Math.floor(Math.random() * THEMES.length);
-    return THEMES[index];
+    return THEMES[Math.floor(Math.random() * THEMES.length)];
   }
 
   // ===== DOM
+  const themeSelect = document.getElementById("themeSelect");
+  const metroOn = document.getElementById("metroOn");
   const inhale = document.getElementById("inhale");
   const exhale = document.getElementById("exhale");
   const inhaleVal = document.getElementById("inhaleVal");
@@ -460,42 +445,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const inhalePlus  = document.getElementById("inhalePlus");
   const exhaleMinus = document.getElementById("exhaleMinus");
   const exhalePlus  = document.getElementById("exhalePlus");
-  
-  function bumpRange(rangeEl, delta){
-    const min = parseInt(rangeEl.min, 10);
-    const max = parseInt(rangeEl.max, 10);
-    const cur = parseInt(rangeEl.value, 10);
-    const next = Math.max(min, Math.min(max, cur + delta));
-    rangeEl.value = String(next);
-  
-    // スライダーを動かしたのと同じ扱いにする
-    rangeEl.dispatchEvent(new Event("input", { bubbles: true }));
-  }
-  
-  inhaleMinus.addEventListener("click", () => bumpRange(inhale, -1));
-  inhalePlus.addEventListener("click",  () => bumpRange(inhale, +1));
-  exhaleMinus.addEventListener("click", () => bumpRange(exhale, -1));
-  exhalePlus.addEventListener("click",  () => bumpRange(exhale, +1));  
 
-  const themeSelect = document.getElementById("themeSelect");
-  const metroOn = document.getElementById("metroOn");
-
-  // ===== テーマプルダウン
   function buildThemeSelect(){
     const byCat = new Map();
     THEMES.forEach(t => {
       if (!byCat.has(t.category)) byCat.set(t.category, []);
       byCat.get(t.category).push(t);
     });
-  
+
     themeSelect.innerHTML = "";
-  
-    // ★ ランダム追加（最上段）
+
     const randomOpt = document.createElement("option");
     randomOpt.value = "random";
     randomOpt.textContent = "🎲 ランダム";
     themeSelect.appendChild(randomOpt);
-  
+
     Array.from(byCat.keys()).forEach(cat => {
       const og = document.createElement("optgroup");
       og.label = cat;
@@ -508,31 +472,36 @@ document.addEventListener("DOMContentLoaded", () => {
       themeSelect.appendChild(og);
     });
   }
-
   buildThemeSelect();
 
   const THEME_KEY = "breathing_theme_id";
   const savedTheme = localStorage.getItem(THEME_KEY);
-  const initialTheme = savedTheme && THEMES.some(t => t.id === savedTheme)
-    ? savedTheme
-    : "calm_mist"; // デフォルト（好みで変更OK）
-
+  const initialTheme = (savedTheme === "random" || THEMES.some(t => t.id === savedTheme)) ? savedTheme : "calm_mist";
   themeSelect.value = initialTheme;
-  applyTheme(initialTheme);
+
+  if (initialTheme !== "random") applyTheme(initialTheme);
 
   themeSelect.addEventListener("change", () => {
     localStorage.setItem(THEME_KEY, themeSelect.value);
-    applyTheme(themeSelect.value);
+    if (themeSelect.value !== "random") applyTheme(themeSelect.value);
   });
 
-  // ===== UIロック
-  function setControlsEnabled(enabled){
-      const controls = [
-        themeSelect, metroOn, inhale, exhale,
-        inhaleMinus, inhalePlus, exhaleMinus, exhalePlus
-      ];
-    controls.forEach(el => { el.disabled = !enabled; });
+  function bumpRange(rangeEl, delta){
+    const min = parseInt(rangeEl.min, 10);
+    const max = parseInt(rangeEl.max, 10);
+    const cur = parseInt(rangeEl.value, 10);
+    const next = Math.max(min, Math.min(max, cur + delta));
+    rangeEl.value = String(next);
+    rangeEl.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+  inhaleMinus.addEventListener("click", () => bumpRange(inhale, -1));
+  inhalePlus.addEventListener("click",  () => bumpRange(inhale, +1));
+  exhaleMinus.addEventListener("click", () => bumpRange(exhale, -1));
+  exhalePlus.addEventListener("click",  () => bumpRange(exhale, +1));
 
+  function setControlsEnabled(enabled){
+    const controls = [themeSelect, metroOn, inhale, exhale, inhaleMinus, inhalePlus, exhaleMinus, exhalePlus];
+    controls.forEach(el => { el.disabled = !enabled; });
     const opacity = enabled ? "1" : "0.6";
     controls.forEach(el => {
       el.style.opacity = opacity;
@@ -540,7 +509,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ===== 秒数表示
   function updateValues(){
     inhaleVal.textContent = inhale.value + "秒";
     exhaleVal.textContent = exhale.value + "秒";
@@ -549,7 +517,7 @@ document.addEventListener("DOMContentLoaded", () => {
   exhale.addEventListener("input", updateValues);
   updateValues();
 
-  // ===== ログ（ビーコンGET）
+  // ===== ログ（必要ならあなたの/execに置換）
   const LOG_ENDPOINT = "（あなたの/exec URLに置き換え）";
 
   function getClientId() {
@@ -564,8 +532,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return id;
   }
 
-  function logUsageToSheet(action) {
-    // URL未設定なら何もしない（ローカル確認用）
+  function logUsageToSheet(action, appliedThemeIdForLog) {
     if (!LOG_ENDPOINT || LOG_ENDPOINT.includes("置き換え")) return;
 
     const url = new URL(LOG_ENDPOINT);
@@ -577,9 +544,8 @@ document.addEventListener("DOMContentLoaded", () => {
     url.searchParams.set("referrer", document.referrer || "");
     url.searchParams.set("t", String(Date.now()));
 
-    // start時だけテーマ/metroを送る
     if (action === "start") {
-      url.searchParams.set("theme", themeSelect.value);              // themeId
+      url.searchParams.set("theme", appliedThemeIdForLog || themeSelect.value);
       url.searchParams.set("metroOn", metroOn.checked ? "1" : "0");
     } else {
       url.searchParams.set("theme", "");
@@ -590,20 +556,15 @@ document.addEventListener("DOMContentLoaded", () => {
     img.src = url.toString();
   }
 
-  // ===== 音（合図＋メトロノーム）
+  // ===== 音
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
   function ensureAudio(){
-    if (audioCtx.state === "suspended") {
-      audioCtx.resume().catch(()=>{});
-    }
+    if (audioCtx.state === "suspended") audioCtx.resume().catch(()=>{});
   }
 
-  // 合図音（木っぽいコツ）
   function wood(freq = 300, duration = 0.11, gainPeak = 0.35){
     ensureAudio();
     const now = audioCtx.currentTime;
-
     const osc = audioCtx.createOscillator();
     const g = audioCtx.createGain();
     const filter = audioCtx.createBiquadFilter();
@@ -626,7 +587,6 @@ document.addEventListener("DOMContentLoaded", () => {
     osc.stop(now + duration);
   }
 
-  // メトロノーム（ノイズクリック）
   function metroClick(accent = false){
     ensureAudio();
     const now = audioCtx.currentTime;
@@ -641,7 +601,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const gain = audioCtx.createGain();
     const filter = audioCtx.createBiquadFilter();
-
     filter.type = "highpass";
     filter.frequency.value = 2800;
 
@@ -667,22 +626,16 @@ document.addEventListener("DOMContentLoaded", () => {
     metroTimer = setInterval(() => metroClick(false), 1000);
   }
   function stopMetronome(){
-    if (metroTimer) {
-      clearInterval(metroTimer);
-      metroTimer = null;
-    }
+    if (metroTimer) { clearInterval(metroTimer); metroTimer = null; }
   }
 
-  // ===== 呼吸フェーズ
+  // ===== 呼吸フェーズ（吐く→止める→吸う→止める）
   let running = false;
   let timer = null;
 
   const HOLD_MS = 2000;
-
-  // 円のスケール（被りにくさ優先）
   const SCALE_INHALE_MAX = 1.16;
   const SCALE_EXHALE_MIN = 0.80;
-
   let currentScale = 1.0;
 
   function setPhase(text, durationMs, scale, opacity, lockScale=false){
@@ -701,44 +654,26 @@ document.addEventListener("DOMContentLoaded", () => {
     circle.style.opacity = String(opacity);
   }
 
-  function cueInhale(){ wood(300); }                 // 低：吸う
-  function cueExhale(){ wood(220); }                 // 低：吐く
-  function cueHold(){ wood(900); setTimeout(() => wood(900), 150); } // 高2回：止める
+  function cueInhale(){ wood(300); }
+  function cueExhale(){ wood(220); }
+  function cueHold(){ wood(900); setTimeout(() => wood(900), 150); }
 
-  // ===== 円中央カウント
   let countdownTimer = null;
-
   function startCountdown(seconds){
     clearInterval(countdownTimer);
     let remain = Number(seconds);
-    if (!Number.isFinite(remain) || remain <= 0) {
-      countdown.textContent = "";
-      return;
-    }
+    if (!Number.isFinite(remain) || remain <= 0) { countdown.textContent = ""; return; }
     countdown.textContent = String(remain);
 
     countdownTimer = setInterval(() => {
       remain--;
-      if (remain <= 0) {
-        clearInterval(countdownTimer);
-        countdown.textContent = "";
-      } else {
-        countdown.textContent = String(remain);
-      }
+      if (remain <= 0) { clearInterval(countdownTimer); countdown.textContent = ""; }
+      else { countdown.textContent = String(remain); }
     }, 1000);
   }
+  function clearCountdown(){ clearInterval(countdownTimer); countdown.textContent = ""; }
+  function showHold(){ clearInterval(countdownTimer); countdown.textContent = "HOLD"; }
 
-  function clearCountdown(){
-    clearInterval(countdownTimer);
-    countdown.textContent = "";
-  }
-
-  function showHold(){
-    clearInterval(countdownTimer);
-    countdown.textContent = "HOLD";
-  }
-
-  // ===== 瞑想時間
   let startAtMs = null;
   function resetDurationView(){
     durationEl.style.display = "none";
@@ -754,84 +689,76 @@ document.addEventListener("DOMContentLoaded", () => {
     durationEl.style.display = "block";
   }
 
-    function cycle(){
-      if (!running) return;
-    
-      const inhaleMs = parseInt(inhale.value, 10) * 1000;
-      const exhaleMs = parseInt(exhale.value, 10) * 1000;
-    
-      // ① 吐く（先に吐く）
-      cueExhale();
-      setPhase("吐いて", exhaleMs, SCALE_EXHALE_MIN, 1.0, false);
-      startCountdown(exhale.value);
-      startMetronome();
-    
+  function cycle(){
+    if (!running) return;
+
+    const inhaleMs = parseInt(inhale.value, 10) * 1000;
+    const exhaleMs = parseInt(exhale.value, 10) * 1000;
+
+    // ① 吐く
+    cueExhale();
+    setPhase("吐いて", exhaleMs, SCALE_EXHALE_MIN, 1.0, false);
+    startCountdown(exhale.value);
+    startMetronome();
+
+    timer = setTimeout(() => {
+      // ② 止める
+      cueHold();
+      stopMetronome();
+      setPhase("止める", HOLD_MS, currentScale, 0.92, true);
+      showHold();
+
       timer = setTimeout(() => {
-        // ② 止める（メトロノーム停止）
-        cueHold();
-        stopMetronome();
-        setPhase("止める", HOLD_MS, currentScale, 0.92, true);
-        showHold();
-    
+        // ③ 吸う
+        cueInhale();
+        setPhase("吸って", inhaleMs, SCALE_INHALE_MAX, 1.0, false);
+        startCountdown(inhale.value);
+        startMetronome();
+
         timer = setTimeout(() => {
-          // ③ 吸う（次に吸う：メトロノーム再開）
-          cueInhale();
-          setPhase("吸って", inhaleMs, SCALE_INHALE_MAX, 1.0, false);
-          startCountdown(inhale.value);
-          startMetronome();
-    
-          timer = setTimeout(() => {
-            // ④ 止める（メトロノーム停止）
-            cueHold();
-            stopMetronome();
-            setPhase("止める", HOLD_MS, currentScale, 0.92, true);
-            showHold();
-    
-            timer = setTimeout(() => {
-              cycle(); // ⑤ 繰り返し（吐くから始まる）
-            }, HOLD_MS);
-    
-          }, inhaleMs);
-    
-        }, HOLD_MS);
-    
-      }, exhaleMs);
-    }
+          // ④ 止める
+          cueHold();
+          stopMetronome();
+          setPhase("止める", HOLD_MS, currentScale, 0.92, true);
+          showHold();
+
+          timer = setTimeout(() => cycle(), HOLD_MS);
+        }, inhaleMs);
+      }, HOLD_MS);
+    }, exhaleMs);
+  }
 
   function start(){
     if (running) return;
     running = true;
-  
-    // ★ テーマ判定
-    let appliedThemeId = themeSelect.value;
-  
-    if (appliedThemeId === "random") {
-      const randomTheme = pickRandomTheme();
-      appliedThemeId = randomTheme.id;
-      applyTheme(appliedThemeId);
+
+    let appliedThemeIdForLog = themeSelect.value;
+
+    if (themeSelect.value === "random") {
+      const picked = pickRandomTheme();
+      applyTheme(picked.id);
+      appliedThemeIdForLog = picked.id;
+      // UIは「random」のまま維持（ユーザー意図：ランダムON）
     } else {
-      applyTheme(appliedThemeId);
+      applyTheme(themeSelect.value);
     }
-  
-    // UI同期（ランダム時は実際のテーマ名に変える）
-    themeSelect.value = appliedThemeId;
-  
-    logUsageToSheet("start");
-  
+
+    logUsageToSheet("start", appliedThemeIdForLog);
+
     setControlsEnabled(false);
     lockNote.style.display = "block";
-  
+
     startAtMs = Date.now();
     resetDurationView();
-  
+
     ensureAudio();
     bgm.play().catch(()=>{});
-  
+
     currentScale = 1.0;
     circle.style.transitionDuration = "200ms";
     circle.style.transform = "scale(1)";
     circle.style.opacity = "0.92";
-  
+
     cycle();
   }
 
@@ -839,7 +766,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!running) return;
     running = false;
 
-    // ログ
     logUsageToSheet("stop");
 
     if (timer) clearTimeout(timer);
@@ -847,7 +773,6 @@ document.addEventListener("DOMContentLoaded", () => {
     stopMetronome();
     clearCountdown();
 
-    // 瞑想時間表示
     showDuration();
     startAtMs = null;
 
@@ -858,7 +783,6 @@ document.addEventListener("DOMContentLoaded", () => {
     circle.style.opacity = "0.92";
     bgm.pause();
 
-    // ロック解除
     setControlsEnabled(true);
     lockNote.style.display = "none";
   }
@@ -870,8 +794,3 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
-
-
-
-
-
